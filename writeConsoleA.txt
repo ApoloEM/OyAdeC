@@ -1,0 +1,38 @@
+.386                    
+.model flat, stdcall
+.stack 4096
+option casemap:none     
+
+; Importamos funciones del API de Windows
+
+includelib kernel32.lib
+GetStdHandle PROTO STDCALL :DWORD
+WriteConsoleA PROTO STDCALL :DWORD, :DWORD, :DWORD, :DWORD, :DWORD
+
+STD_OUTPUT_HANDLE equ -11  
+
+.data
+mensaje db "Hola, Mundo!", 0  
+tamanyoMensaje dd 12          
+
+.code
+main PROC
+    
+    push STD_OUTPUT_HANDLE
+    call GetStdHandle
+
+    mov ebx, eax  
+
+    mov edx, OFFSET mensaje    
+
+    push 0 ;reservado, debe ser NULL (0)             
+    push offset tamanyoMensaje ;puntero a la variable que recibe cuántos caracteres se escribieron  
+    push 12; número de caracteres que quieres escribir             
+    push edx; puntero al buffer que contiene el mensaje a imprimir            
+    push ebx; handle de la consola (STD_OUTPUT_HANDLE)            
+
+    call WriteConsoleA
+
+    RET
+main ENDP
+END main

@@ -1,0 +1,208 @@
+%==================================================================
+% CLASE DEL DOCUMENTO
+%==================================================================
+\documentclass[a4paper,12pt]{article}
+
+%==================================================================
+% IDIOMA Y CODIFICACIÓN
+%==================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+
+%==================================================================
+% FORMATO GENERAL Y HERRAMIENTAS
+%==================================================================
+\usepackage{geometry}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+
+\usepackage{graphicx} 
+\usepackage{float}    
+\usepackage{enumitem} 
+\usepackage{listings} 
+\usepackage{xcolor}   
+\usepackage{tikz}     
+\usepackage{eso-pic}  
+\usepackage{titlesec} 
+\usepackage{hyperref}
+\usepackage{lipsum} % paquete para texto de relleno
+\usetikzlibrary{calc}
+
+%==================================================================
+% COLORES Y ESTILO VISUAL (Personalización Estética)
+%==================================================================
+\definecolor{VerdeUABC}{RGB}{75, 83, 32} % Tu color VerdeMilitar
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+
+% Estilo de código optimizado para Ensamblador y C
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{purple},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    captionpos=b,
+    language=[x86masm]Assembler % Lenguaje por defecto
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+%==================================================================
+% ENCABEZADO Y PIE DE PÁGINA
+% Configuración con fancyhdr
+% NO MODIFICAR si no se conoce fancyhdr
+%==================================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize OyAdeC}
+\chead{\footnotesize \tituloPractica}
+\rhead{\footnotesize 1110604 - EAMM}
+\cfoot{\thepage}
+
+% Configuración de títulos
+\titleformat{\section}{\large\bfseries}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+
+%==================================================================
+% DATOS DEL REPORTE (MODIFICAR AQUÍ)
+%==================================================================
+\newcommand{\tituloPractica}{Título de la Práctica}
+\newcommand{\numeroPractica}{\#XX}
+\newcommand{\unidadNumero}{X}
+\newcommand{\profesor}{Dr. Omar Muñoz Urías}
+\newcommand{\fechaEntrega}{DD/Mes/YYYY}
+
+% --- INTEGRANTES ---
+\newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
+
+%==================================================================
+% MARCO DECORATIVO
+%==================================================================
+\newcommand{\MarcoPagina}{
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1.2pt, color=VerdeUABC!90] 
+            ($(current page.north west) + (0.7cm,-0.7cm)$) rectangle ($(current page.south east) + (-0.7cm,0.7cm)$);
+        \draw [line width=0.6pt, color=VerdeUABC!60] 
+            ($(current page.north west) + (0.85cm,-0.85cm)$) rectangle ($(current page.south east) + (-0.85cm,0.85cm)$);
+    \end{tikzpicture}
+}
+
+%==================================================================
+% INICIO DEL DOCUMENTO
+%==================================================================
+\begin{document}
+
+% 1. PORTADA
+\begin{titlepage}
+    \AddToShipoutPictureBG*{\MarcoPagina}
+	\begin{center}
+		\includegraphics[width=4cm]{escudo-actualizado-2022.png}
+		\hspace{1cm}
+		\includegraphics[width=5cm]{1593484343817.jpg}
+		\vspace{1.5cm}
+
+		\LARGE \textbf{Universidad Autónoma de Baja California}\\
+		\Large Facultad de Ingeniería Mexicali\\
+		\Large Ingeniería en Computación\\
+		\vspace{0.7cm}
+
+		{\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+		\large \textbf{Reporte de Práctica: \numeroPractica}\\
+		\vspace{0.1cm}
+		{\Huge {\tituloPractica} }\\
+		{\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+        \vfill
+		Organización y Arquitectura de Computadoras\\
+        Dr. Omar Muñoz Urías \\
+        \vspace{2cm}
+        \integranteA \\
+        \vspace{1.4cm}
+		\textbf{Fecha de entrega:} \\ \fechaEntrega \\
+        \vspace{1cm}
+        {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
+		Mexicali, Baja California\\ \today
+	\end{center}
+\end{titlepage}
+
+% ÍNDICE
+\newpage
+\AddToShipoutPictureBG{\MarcoPagina}
+\tableofcontents
+
+% 2. INTRODUCCIÓN
+\newpage
+\section{Introducción}
+Escribe aquí el contexto general de la práctica y un resumen de lo que se abordará.
+
+% 3. PROBLEMÁTICA
+\section{Problemática}
+Describe el reto técnico o el problema específico que se busca resolver en esta sesión de laboratorio.
+
+% 4. JUSTIFICACIÓN
+\section{Justificación}
+Explica por qué es importante resolver esta problemática y cómo ayuda a entender la arquitectura de computadoras.
+
+% 5. OBJETIVOS DE LA PRÁCTICA
+\section{Objetivos de la práctica}
+\begin{itemize}
+    \item \textbf{General:} Diseñar e implementar...
+    \item \textbf{Específicos:}
+    \begin{itemize}
+        \item Manipular registros del procesador...
+        \item Implementar lógica en ensamblador inline...
+    \end{itemize}
+\end{itemize}
+
+% 6. MARCO TEÓRICO
+\section{Marco teórico}
+Conceptos clave como: Pila de registros, FPU, direccionamiento indirecto, etc.
+\cite{ref_irvine} % Ejemplo de cita
+
+% 7. PROCEDIMIENTO
+\section{Procedimiento}
+Describe paso a paso lo realizado. Puedes incluir diagramas de flujo o bloques.
+
+
+[Image of a computer architecture flowchart]
+
+
+\subsection{Código Destacado}
+\begin{lstlisting}[language=C, caption=Integración de ensamblador en C]
+__asm {
+    mov eax, 1
+    add eax, ebx
+}
+\end{lstlisting}
+
+% 8. RESULTADOS CON PRUEBAS
+\section{Resultados con pruebas}
+Inserta aquí capturas de pantalla de la ejecución, tablas de datos o fotos del hardware si aplica.
+
+\begin{figure}[H]
+    \centering
+    %\includegraphics[width=0.8\textwidth]{resultado1.png}
+    \caption{Captura de pantalla de la ejecución exitosa.}
+\end{figure}
+
+% 9. CONCLUSIONES
+\section{Conclusiones}
+Reflexiones finales sobre el aprendizaje obtenido y el cumplimiento de los objetivos.
+
+% REFERENCIAS
+\newpage
+\begin{thebibliography}{9}
+    \bibitem{ref_irvine} 
+    Irvine, K. (2019). \textit{Assembly Language for x86 Processors}. Pearson.
+\end{thebibliography}
+
+\end{document}
