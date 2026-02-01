@@ -15,7 +15,9 @@
 %==================================================================
 \usepackage{geometry}
 \geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\setlength{\parskip}{1\baselineskip}
 
+\usepackage{microtype}
 \usepackage{graphicx} 
 \usepackage{float}    
 \usepackage{enumitem} 
@@ -23,31 +25,107 @@
 \usepackage{xcolor}   
 \usepackage{tikz}     
 \usepackage{eso-pic}  
-\usepackage{titlesec} 
+\usepackage{titlesec}
+\usepackage{multicol}
 \usepackage{hyperref}
-\usepackage{lipsum} % paquete para texto de relleno
+\usepackage{lipsum}
+\usepackage{booktabs}  % Para tablas profesionales
+\usepackage{array}     % Para personalizar columnas de tablas
 \usetikzlibrary{calc}
 
 %==================================================================
-% COLORES Y ESTILO VISUAL (Personalización Estética)
+% COLORES Y ESTILO VISUAL
 %==================================================================
-\definecolor{VerdeUABC}{RGB}{75, 83, 32} % Tu color VerdeMilitar
+\definecolor{VerdeUABC}{RGB}{75, 83, 32}
 \definecolor{backcolour}{rgb}{0.96,0.96,0.94}
 \definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{hexcolor}{RGB}{0, 102, 204}      % Azul para hexadecimal
+\definecolor{bincolor}{RGB}{153, 0, 153}      % Morado para binario
 
-% Estilo de código optimizado para Ensamblador y C
-\lstset{
-    backgroundcolor=\color{backcolour},   
-    commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
+%==================================================================
+% CONFIGURACIÓN DE LISTINGS PARA MÚLTIPLES LENGUAJES
+%==================================================================
+
+% Estilo base común para todos los lenguajes
+\lstdefinestyle{baseStyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
     numberstyle=\tiny\color{gray},
-    stringstyle=\color{purple},
     basicstyle=\ttfamily\small,
     breaklines=true,
     frame=single,
     captionpos=b,
-    language=[x86masm]Assembler % Lenguaje por defecto
+    numbers=left,
+    numbersep=8pt,
+    tabsize=4,
+    showstringspaces=false
 }
+
+% Estilo específico para Assembly x86
+\lstdefinestyle{assemblyStyle}{
+    style=baseStyle,
+    language=[x86masm]Assembler,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={section, global, extern, db, dw, dd, dq, times, equ},
+    morecomment=[l]{;},
+    commentstyle=\color{codegreen}\itshape
+}
+
+% Estilo específico para C
+\lstdefinestyle{cStyle}{
+    style=baseStyle,
+    language=C,
+    keywordstyle=\color{magenta}\bfseries,
+    stringstyle=\color{codepurple},
+    directivestyle=\color{codeorange},
+    emph={__asm, inline, register, volatile},
+    emphstyle=\color{blue}\bfseries
+}
+
+% Estilo específico para C++ (por si acaso)
+\lstdefinestyle{cppStyle}{
+    style=baseStyle,
+    language=C++,
+    keywordstyle=\color{magenta}\bfseries,
+    stringstyle=\color{codepurple},
+    directivestyle=\color{codeorange},
+    emph={__asm, inline, register, volatile, constexpr},
+    emphstyle=\color{blue}\bfseries
+}
+
+% Configuración por defecto (Assembly)
+\lstset{style=assemblyStyle}
+
+%==================================================================
+% COMANDOS PERSONALIZADOS PARA ARQUITECTURA
+%==================================================================
+
+% Comando para instrucciones en línea (ej: \inst{MOV}, \inst{ADD})
+\newcommand{\inst}[1]{\texttt{\textbf{#1}}}
+
+% Comando para registros en línea (ej: \reg{EAX}, \reg{EBX})
+\newcommand{\reg}[1]{\texttt{\textcolor{blue}{#1}}}
+
+% Comando para valores hexadecimales (ej: \hex{0x1A2B})
+\newcommand{\hex}[1]{\texttt{\textcolor{hexcolor}{#1}}}
+
+% Comando para valores binarios (ej: \bin{10110101})
+\newcommand{\bin}[1]{\texttt{\textcolor{bincolor}{#1}}}
+
+% Comando para formato de instrucción completo
+% Uso: \instrformat{MOV}{EAX, EBX}
+\newcommand{\instrformat}[2]{\texttt{\textbf{#1} #2}}
+
+%==================================================================
+% ENTORNOS PARA TABLAS DE REGISTROS
+%==================================================================
+
+% Definir anchos de columna para tablas de registros
+\newcolumntype{R}{>{\centering\arraybackslash}p{2.5cm}}
+\newcolumntype{V}{>{\centering\arraybackslash}p{3cm}}
 
 \hypersetup{
     colorlinks=true,
@@ -58,20 +136,19 @@
 
 %==================================================================
 % ENCABEZADO Y PIE DE PÁGINA
-% Configuración con fancyhdr
-% NO MODIFICAR si no se conoce fancyhdr
 %==================================================================
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
 \lhead{\footnotesize OyAdeC}
 \chead{\footnotesize \tituloPractica}
-\rhead{\footnotesize 1110604 - EAMM}
+\rhead{\footnotesize 1110604}
 \cfoot{\thepage}
 
 % Configuración de títulos
-\titleformat{\section}{\large\bfseries}{\thesection.}{1em}{}
+\titleformat{\section}{\large\bfseries\color{VerdeUABC}}{\thesection.}{1em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection.}{1em}{}
 
 %==================================================================
 % DATOS DEL REPORTE (MODIFICAR AQUÍ)
@@ -82,7 +159,6 @@
 \newcommand{\profesor}{Ing. Felix Arredondo Santamaria}
 \newcommand{\fechaEntrega}{DD/FEBRERO/2026}
 
-% --- INTEGRANTES ---
 \newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
 
 %==================================================================
@@ -105,33 +181,33 @@
 % 1. PORTADA
 \begin{titlepage}
     \AddToShipoutPictureBG*{\MarcoPagina}
-	\begin{center}
-        \includegraphics[width=4cm]{C:/Users/erick/Downloads/organizacion_y_Arquitectura_de_computadoras/laboratorio/recursos/escudo-actualizado-2022.png}
-		\hspace{1cm}
-		\includegraphics[width=5cm]{C:/Users/erick/Downloads/organizacion_y_Arquitectura_de_computadoras/laboratorio/recursos/1593484343817.jpg}
-		\vspace{1.5cm}
+    \begin{center}
+        \includegraphics[width=4cm]{../recursos/escudo-actualizado-2022.png}
+        \hspace{1cm}
+        \includegraphics[width=5cm]{../recursos/1593484343817.jpg}
+        \vspace{1.5cm}
 
-		\LARGE \textbf{Universidad Autónoma de Baja California}\\
-		\Large Facultad de Ingeniería Mexicali\\
-		\Large Ingeniería en Computación\\
-		\vspace{0.7cm}
+        \LARGE \textbf{Universidad Autónoma de Baja California}\\
+        \Large Facultad de Ingeniería Mexicali\\
+        \Large Ingeniería en Computación\\
+        \vspace{0.7cm}
 
-		{\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
-		\large \textbf{Reporte de Práctica: \numeroPractica}\\
-		\vspace{0.1cm}
-		{\Huge {\tituloPractica} }\\
-		{\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+        \large \textbf{Reporte de Práctica: \numeroPractica}\\
+        \vspace{0.1cm}
+        {\Huge {\tituloPractica}}\\
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
         \vfill
-		Organización y Arquitectura de Computadoras\\
+        Organización y Arquitectura de Computadoras\\
         \profesor \\
         \vspace{2cm}
         \integranteA \\
         \vspace{1.4cm}
-		\textbf{Fecha de entrega:} \\ \fechaEntrega \\
+        \textbf{Fecha de entrega:} \\ \fechaEntrega \\
         \vspace{1cm}
         {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
-		Mexicali, Baja California\\ \today
-	\end{center}
+        Mexicali, Baja California\\ \today
+    \end{center}
 \end{titlepage}
 
 % ÍNDICE
@@ -166,21 +242,105 @@ Explica por qué es importante resolver esta problemática y cómo ayuda a enten
 % 6. MARCO TEÓRICO
 \section{Marco teórico}
 Conceptos clave como: Pila de registros, FPU, direccionamiento indirecto, etc.
-\cite{ref_irvine} % Ejemplo de cita
 
 % 7. PROCEDIMIENTO
 \section{Procedimiento}
 Describe paso a paso lo realizado. Puedes incluir diagramas de flujo o bloques.
 
+La instrucción \inst{MOV} mueve datos del registro \reg{EAX} al registro \reg{EBX}. El valor \hex{0x1A2B} en binario es \bin{0001101000101011}.
 
-[Image of a computer architecture flowchart]
+\subsection{Ejemplo de Formato de Instrucción}
+La instrucción completa sería: \instrformat{MOV}{EAX, 0x1A2B}
 
+\subsection{Tabla de Estado de Registros}
+A continuación se muestra el estado de los registros antes y después de la ejecución:
 
-\subsection{Código Destacado}
-\begin{lstlisting}[language=C, caption=Integración de ensamblador en C]
-__asm {
-    mov eax, 1
-    add eax, ebx
+\begin{table}[H]
+    \centering
+    \caption{Estado de registros antes y después de la ejecución.}
+    \label{tab:registros}
+    \begin{tabular}{@{}RVRV@{}}
+        \toprule
+        \multicolumn{2}{c}{\textbf{Antes}} & \multicolumn{2}{c}{\textbf{Después}} \\
+        \cmidrule(r){1-2} \cmidrule(l){3-4}
+        \textbf{Registro} & \textbf{Valor} & \textbf{Registro} & \textbf{Valor} \\
+        \midrule
+        EAX & 0x00000000 & EAX & 0x0000001A \\
+        EBX & 0x00000000 & EBX & 0x0000002B \\
+        ECX & 0x00000000 & ECX & 0x00000000 \\
+        EDX & 0x00000000 & EDX & 0x00000000 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Tabla de Formato de Instrucción}
+\begin{table}[H]
+    \centering
+    \caption{Formato de instrucción MOV en x86.}
+    \label{tab:formato_instr}
+    \begin{tabular}{@{}cccccc@{}}
+        \toprule
+        \textbf{Bits} & \textbf{31-24} & \textbf{23-16} & \textbf{15-8} & \textbf{7-0} \\
+        \midrule
+        Opcode & 1000 1001 & \multicolumn{2}{c}{ModR/M} & Immediate \\
+        Hex & 89 & \multicolumn{2}{c}{C3} & 00 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Código en Ensamblador}
+\begin{lstlisting}[style=assemblyStyle, caption=Ejemplo de código Assembly x86, label=lst:asm_example]
+section .data
+    msg db 'Hola Mundo', 0xA
+    len equ $ - msg
+
+section .text
+    global _start
+
+_start:
+    ; Escribir mensaje
+    mov eax, 4          ; sys_write
+    mov ebx, 1          ; stdout
+    mov ecx, msg        ; mensaje
+    mov edx, len        ; longitud
+    int 0x80            ; llamada al sistema
+    
+    ; Salir
+    mov eax, 1          ; sys_exit
+    xor ebx, ebx        ; codigo 0
+    int 0x80
+\end{lstlisting}
+
+\subsection{Código en C}
+\begin{lstlisting}[style=cStyle, caption=Integración de ensamblador inline en C, label=lst:c_example]
+#include <stdio.h>
+
+int main() {
+    int resultado;
+    int a = 5, b = 3;
+    
+    // Ensamblador inline
+    __asm {
+        mov eax, a
+        add eax, b
+        mov resultado, eax
+    }
+    
+    printf("Resultado: %d\n", resultado);
+    return 0;
+}
+\end{lstlisting}
+
+\subsection{Código Mixto C con Assembly}
+\begin{lstlisting}[style=cStyle, caption=Ejemplo de función con assembly embebido, label=lst:mixed_example]
+int suma_asm(int x, int y) {
+    int res;
+    __asm {
+        mov eax, x
+        add eax, y
+        mov res, eax
+    }
+    return res;
 }
 \end{lstlisting}
 
@@ -188,11 +348,30 @@ __asm {
 \section{Resultados con pruebas}
 Inserta aquí capturas de pantalla de la ejecución, tablas de datos o fotos del hardware si aplica.
 
-\begin{figure}[H]
-    \centering
-    %\includegraphics[width=0.8\textwidth]{resultado1.png}
-    \caption{Captura de pantalla de la ejecución exitosa.}
-\end{figure}
+% \subsection{Captura del Debugger}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.9\textwidth]{../recursos/debugger_screenshot.png}
+%     \caption{Vista del debugger de Visual Studio mostrando el estado de los registros durante la ejecución.}
+%     \label{fig:debugger}
+% \end{figure}
+
+% \subsection{Salida del Programa}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{../recursos/resultado_ejecucion.png}
+%     \caption{Captura de pantalla de la ejecución exitosa del programa.}
+%     \label{fig:resultado}
+% \end{figure}
+
+\subsection{Configuración de Visual Studio para Capturas}
+Para obtener capturas óptimas del debugger en Visual Studio:
+\begin{itemize}
+    \item Activar vista de registros: \texttt{Debug $\rightarrow$ Windows $\rightarrow$ Registers}
+    \item Mostrar desensamblado: \texttt{Debug $\rightarrow$ Windows $\rightarrow$ Disassembly}
+    \item Vista de memoria: \texttt{Debug $\rightarrow$ Windows $\rightarrow$ Memory}
+    \item Asegurar que los puntos de interrupción estén visibles en la captura
+\end{itemize}
 
 % 9. CONCLUSIONES
 \section{Conclusiones}
@@ -203,6 +382,19 @@ Reflexiones finales sobre el aprendizaje obtenido y el cumplimiento de los objet
 \begin{thebibliography}{9}
     \bibitem{ref_irvine} 
     Irvine, K. (2019). \textit{Assembly Language for x86 Processors}. Pearson.
+    
+    \bibitem{ref_patterson}
+    Patterson, D. A., \& Hennessy, J. L. (2017). \textit{Computer Organization and Design}. Morgan Kaufmann.
 \end{thebibliography}
+
+% ANEXOS (opcional)
+\newpage
+\appendix
+\section{Repositorio de código}
+El código completo de las prácticas y programas utilizados se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/usuario/arquitectura-computadoras-practica-XX}
+\end{center}
 
 \end{document}
