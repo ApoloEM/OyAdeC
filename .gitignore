@@ -12,3 +12,19 @@ indent.log
 *.tmp
 *.bak
 *~
+
+# Visual Studio / C++
+.vs/
+Debug/
+Release/
+/x64/
+/x86/
+*.user
+*.suo
+*.obj
+*.pdb
+*.ilk
+*.idb
+*.recipe
+*.tlog/
+*.exe
