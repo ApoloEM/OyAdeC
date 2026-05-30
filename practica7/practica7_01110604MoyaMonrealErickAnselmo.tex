@@ -1,0 +1,621 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\setlength{\parskip}{1\baselineskip}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{referencias.bib}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\usetikzlibrary{calc}
+\definecolor{VerdeUABC}{RGB}{75, 83, 32}
+\definecolor{verdeData}{rgb}{0,0.5,0}
+\definecolor{rowLight}{RGB}{245, 246, 240}
+
+\newcolumntype{R}{>{\centering\arraybackslash}p{2.5cm}}
+\newcolumntype{V}{>{\centering\arraybackslash}p{3cm}}
+
+\sisetup{
+detect-all,
+table-number-alignment=center
+}
+
+\newtcolorbox{instruccionbox}{
+colback=gray!5,
+colframe=black,
+title=Análisis de instrucción
+}
+
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{hexcolor}{RGB}{0, 102, 204}
+\definecolor{bincolor}{RGB}{153, 0, 153}
+
+\lstdefinestyle{baseStyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    numberstyle=\tiny\color{gray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    captionpos=b,
+    numbers=left,
+    numbersep=8pt,
+    tabsize=4,
+    showstringspaces=false
+}
+
+\lstdefinestyle{assemblyStyle}{
+    style=baseStyle,
+    language=[x86masm]Assembler,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={section, global, extern, db, dw, dd, dq, times, equ, lea, movzx, movsx, PROC, ENDP, PROTO, STDCALL, includelib, byte, ptr, offset},
+    morecomment=[l]{;},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstdefinestyle{cStyle}{
+    style=baseStyle,
+    language=C,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={__asm, typedef, struct},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstset{style=assemblyStyle}
+
+\newcommand{\inst}[1]{\texttt{\textbf{#1}}}
+\newcommand{\reg}[1]{\texttt{\textcolor{blue}{#1}}}
+\newcommand{\hex}[1]{\texttt{\textcolor{hexcolor}{#1}}}
+\newcommand{\bin}[1]{\texttt{\textcolor{bincolor}{#1}}}
+\newcommand{\instrformat}[2]{\texttt{\textbf{#1} #2}}
+
+% Marcador para capturas pendientes: muestra un recuadro gris.
+% Para insertar la imagen real, reemplazar por:
+%   \fbox{\includegraphics[width=...]{fotos/nombre.png}}
+\newcommand{\imagePlaceholder}[3]{%
+    \setlength{\fboxsep}{0pt}%
+    \fbox{\begin{minipage}[c][#2][c]{#1}\centering\color{gray}\itshape\small #3\end{minipage}}%
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize OyAdeC}
+\chead{\footnotesize Práctica \numeroPractica: \tituloPractica}
+\rhead{\footnotesize 1110604}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{VerdeUABC}}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection.}{1em}{}
+
+\newcommand{\tituloPractica}{Llamadas al Sistema en MASMx86}
+\newcommand{\numeroPractica}{07}
+\newcommand{\profesor}{Ing. Félix Arredondo Santamaría}
+\newcommand{\fechaEntrega}{01/MAYO/2026}
+
+\newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
+
+\newcommand{\MarcoPagina}{
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1.2pt, color=VerdeUABC!90]
+            ($(current page.north west) + (0.7cm,-0.7cm)$) rectangle ($(current page.south east) + (-0.7cm,0.7cm)$);
+        \draw [line width=0.6pt, color=VerdeUABC!60]
+            ($(current page.north west) + (0.85cm,-0.85cm)$) rectangle ($(current page.south east) + (-0.85cm,0.85cm)$);
+    \end{tikzpicture}
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[width=4.5cm]{../recursos/escudo-actualizado-2022.png}
+        \hspace{1cm}
+        \includegraphics[width=5.5cm]{../recursos/1593484343817.jpg}
+        \vspace{0.5cm}
+
+        \LARGE \textbf{Universidad Autónoma de Baja California}\\
+        \Large Facultad de Ingeniería Mexicali\\
+        \Large Ingeniería en Computación\\
+        \vspace{0.5cm}
+
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+        \large \textbf{Reporte de Práctica \numeroPractica}\\
+        \vspace{0.1cm}
+        {\Huge {\tituloPractica}}\\
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+        \vfill
+        Organización y Arquitectura de Computadoras\\
+        \profesor \\
+        \vspace{1.3cm}
+        \integranteA \\
+        \vspace{1.3cm}
+        \textbf{Fecha de entrega} \\ \fechaEntrega \\
+        \vfill
+        {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
+        Mexicali, Baja California\\ \today
+    \end{center}
+\end{titlepage}
+
+\newpage
+\AddToShipoutPictureBG{\MarcoPagina}
+\begingroup
+\small
+\setlength{\parskip}{12pt}
+\tableofcontents
+\endgroup
+
+\newpage
+\section{Introducción}
+El lenguaje ensamblador concede al programador un control directo sobre los registros del procesador, la pila y las llamadas al sistema operativo, pero a cambio le exige construir manualmente abstracciones que en un lenguaje de alto nivel vienen resueltas de fábrica. Operaciones tan cotidianas como imprimir una cadena, leer texto del teclado o convertir un número a su representación decimal no existen como instrucciones del procesador, deben programarse a partir de las funciones que ofrece el sistema operativo y de la manipulación byte a byte de la memoria.
+
+En esta práctica se desarrolló un conjunto de funciones reutilizables en \texttt{MASM x86} que encapsulan las operaciones básicas de entrada y salida por consola apoyándose en la API de Windows. Se implementan cuatro procedimientos: \texttt{ImprimirCadena}, que muestra una cadena de cualquier longitud calculando su tamaño automáticamente; \texttt{LeerCadena}, que captura texto del usuario y lo deja limpio y terminado en nulo; y la pareja \texttt{LeerNumero} e \texttt{ImprimirNumero}, que traducen entre la representación textual de un número y su valor entero de 32 bits con signo.
+
+\section{Problemática y Justificación}
+A diferencia de un lenguaje de alto nivel, donde una sola instrucción como \texttt{printf} o \texttt{scanf} resuelve la comunicación con la consola, el ensamblador no dispone de funciones de entrada y salida integradas. Toda interacción con el usuario debe canalizarse a través de las funciones que expone el sistema operativo, y para ello es indispensable obtener primero los descriptores (\textit{handles}) de los dispositivos estándar de entrada y salida, preparar la pila con los argumentos en el orden correcto y respetar la convención de llamada que el sistema espera \cite{irvine2020assembly}.
+
+Esto plantea varios retos concretos. La función \texttt{WriteConsoleA} necesita conocer de antemano cuántos caracteres debe imprimir, dato que no se conoce si las cadenas se almacenan terminadas en nulo al estilo de C; por ello hay que recorrerlas carácter por carácter para medir su longitud. La lectura con \texttt{ReadConsoleA} introduce al final del buffer los caracteres de retorno de carro y salto de línea (\texttt{0Dh}, \texttt{0Ah}) que genera la tecla \textit{Enter}, los cuales deben eliminarse para que la cadena sea reutilizable. Finalmente, la consola solo maneja texto, de modo que un número entero debe convertirse dígito por dígito a caracteres ASCII para mostrarse, y a la inversa para leerse \cite{stallings2019computer}.
+
+\newpage
+\section{Objetivos de la práctica}
+\textbf{Objetivo General}
+
+Diseñar e implementar en lenguaje ensamblador \texttt{MASM x86} un conjunto de funciones reutilizables para la entrada y salida de cadenas y números enteros por consola, empleando la API de Windows y la convención de llamada \texttt{stdcall}, de modo que cada función opere sobre datos de longitud arbitraria sin necesidad de especificarla manualmente.
+
+\textbf{Objetivos Específicos}
+\begin{itemize}
+    \item \textbf{Obtener y emplear} los \textit{handles} estándar de entrada y salida mediante \texttt{GetStdHandle} para invocar correctamente a \texttt{WriteConsoleA} y \texttt{ReadConsoleA}.
+    \item \textbf{Implementar} la función \texttt{ImprimirCadena}, capaz de calcular automáticamente la longitud de una cadena terminada en nulo recorriéndola carácter por carácter hasta el terminador.
+    \item \textbf{Desarrollar} la función \texttt{LeerCadena} para capturar texto del usuario de forma segura, eliminando los caracteres \texttt{0Dh} y \texttt{0Ah} que añade la tecla \textit{Enter} y dejando la cadena terminada en nulo.
+    \item \textbf{Construir} las funciones \texttt{LeerNumero} e \texttt{ImprimirNumero} para convertir entre la representación textual y el valor entero de 32 bits con signo, soportando valores negativos y todo el rango válido.
+    \item \textbf{Aplicar} la convención de llamada \texttt{stdcall}, pasando los parámetros por la pila y empleando procedimientos (\texttt{PROC}/\texttt{ENDP}) con preservación de los registros utilizados.
+\end{itemize}
+
+\section{Marco Teórico}
+\subsection{Lenguaje Ensamblador y la API de Windows}
+El lenguaje ensamblador mantiene una correspondencia casi uno a uno con el lenguaje máquina de una arquitectura específica, exponiendo los registros, los modos de direccionamiento y la organización de la memoria \cite{irvine2020assembly}. Como el procesador por sí solo no sabe dialogar con la pantalla o el teclado, los programas de consola en Windows delegan esa tarea en la \textit{Application Programming Interface} (API) del sistema operativo. Las funciones \texttt{GetStdHandle}, \texttt{WriteConsoleA} y \texttt{ReadConsoleA}, contenidas en \texttt{kernel32.lib}, constituyen la interfaz mínima para escribir y leer en la consola \cite{microsoft2023consoleapi}.
+
+\subsection{Procedimientos y la Convención \texttt{stdcall}}
+Un procedimiento (\texttt{PROC}\,\dots\,\texttt{ENDP}) es el equivalente en ensamblador a una función, un bloque de código reutilizable al que se transfiere el control mediante \texttt{CALL} y del que se regresa con \texttt{RET}. Para que llamante y llamado se entiendan deben acordar una \textit{convención de llamada} \cite{irvine2011assembly}. El programa se declara con \texttt{.model flat, stdcall}, por lo que tanto el código propio como las funciones de la API siguen la convención \texttt{stdcall}, en la cual los argumentos se apilan de derecha a izquierda y es la \textbf{propia función llamada} quien libera la pila antes de retornar (\texttt{RET n}). Esto contrasta con la convención \texttt{cdecl}, donde la limpieza recae en el llamante. La directiva \texttt{PROTO} declara la firma de cada función para que el ensamblador verifique el número de argumentos.
+
+\subsection{Paso de Parámetros por la Pila}
+Bajo \texttt{stdcall}, antes de un \texttt{CALL} los argumentos se colocan en la pila con \texttt{PUSH}. Dentro de un \texttt{PROC} declarado con parámetros con nombre (por ejemplo \texttt{pBuffer:DWORD}), el ensamblador genera de manera transparente el prólogo y el epílogo que crean el marco de pila, de modo que cada parámetro puede leerse por su nombre como si fuera una variable local \cite{stallings2019computer}. Esta característica permite escribir funciones legibles sin calcular manualmente los desplazamientos sobre \texttt{EBP}. Sin embargo, al usar la pila para pasar parámetros es crucial respetar el orden de apilado y asegurarse de que cada función limpie la pila según lo estipulado por la convención, para evitar corrupciones de memoria o retornos a direcciones erróneas.
+
+\subsection{Cadenas Terminadas en Nulo y Cálculo de Longitud}
+Siguiendo la convención del lenguaje C, las cadenas se almacenan como secuencias de bytes terminadas en un carácter nulo (\texttt{0}). Esta representación tiene una ventaja, no es necesario guardar la longitud por separado, pero obliga a recorrer la cadena byte a byte para conocer su tamaño \cite{irvine2020assembly}. El patrón empleado consiste en avanzar un puntero e incrementar un contador mientras el byte apuntado sea distinto de cero, deteniéndose en el terminador. Ese contador es justamente el número de caracteres que \texttt{WriteConsoleA} requiere como parámetro, lo que permite imprimir cadenas de cualquier longitud sin declararla de antemano.
+
+\subsection{Lectura de Consola y Limpieza del Buffer}
+\texttt{ReadConsoleA} deposita en un buffer los caracteres tecleados por el usuario y devuelve, a través de un parámetro de salida, el número de caracteres leídos. Cuando el usuario presiona \textit{Enter}, el sistema añade la secuencia de fin de línea de Windows: retorno de carro (\texttt{0Dh}, \texttt{\textbackslash r}) seguido de salto de línea (\texttt{0Ah}, \texttt{\textbackslash n}) \cite{microsoft2023consoleapi}. Si esos dos bytes no se eliminan, la cadena resultante arrastra saltos de línea espurios que estropean su posterior impresión o comparación. Por ello \texttt{LeerCadena} localiza el final de lo leído y sustituye dichos caracteres por el terminador nulo, dejando una cadena limpia y reutilizable.
+
+\subsection{Conversión entre Cadena y Entero}
+La consola únicamente transporta texto, así que un número debe convertirse entre dos representaciones. Para \textbf{leer} un número (\texttt{LeerNumero}) se aplica el esquema de Horner, partiendo de un acumulador en cero, por cada dígito se multiplica el acumulador por diez y se le suma el valor del dígito, obtenido al restar \texttt{48} (el código ASCII del carácter \texttt{'0'}) al carácter leído \cite{patterson2016computer}. Para \textbf{imprimir} un número (\texttt{ImprimirNumero}) se realiza el proceso inverso, se divide repetidamente entre diez y cada residuo, convertido a carácter sumándole \texttt{48}, se apila; como los dígitos se obtienen del menos al más significativo, la pila (estructura LIFO) los devuelve en el orden correcto al desapilarlos. En ambos casos se gestiona aparte el signo para soportar números negativos en todo el rango de 32 bits.
+
+\section{Procedimiento}
+El desarrollo se organizó en tres actividades incrementales, cada una construyendo una función de entrada/salida más completa que la anterior y reutilizando los conceptos previos. Las actividades realizadas fueron las siguientes:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Actividad 1 --- \texttt{ImprimirCadena}.} Se programó un procedimiento que recibe la dirección de una cadena, recorre sus bytes hasta el terminador nulo para medir su longitud y la imprime con \texttt{WriteConsoleA}. Se probó con tres cadenas de distinta longitud.
+
+    \item \textbf{Actividad 2 --- \texttt{LeerCadena}.} Se implementó la captura de texto con \texttt{ReadConsoleA} sobre un buffer seguro, eliminando los caracteres \texttt{0Dh} y \texttt{0Ah} de la tecla \textit{Enter} y terminando la cadena en nulo. Se verificó reimprimiendo el texto capturado.
+
+    \item \textbf{Actividad 3 --- \texttt{LeerNumero} e \texttt{ImprimirNumero}.} Se codificó la conversión de cadena a entero (con manejo de signo) y la conversión inversa de entero a cadena mediante divisiones sucesivas y uso de la pila, probando valores positivos y negativos.
+\end{enumerate}
+
+\section{Resultados con pruebas}
+\subsection{Actividad 1: \texttt{ImprimirCadena}}
+El primer procedimiento resuelve el problema de imprimir una cadena sin conocer de antemano su longitud. Recibe por la pila la dirección de inicio de la cadena, la recorre byte a byte incrementando un contador hasta encontrar el terminador nulo y, con esa longitud, invoca a \texttt{WriteConsoleA}. El Código~\ref{lst:imprimircadena} muestra el procedimiento junto con las llamadas desde \texttt{main}.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Procedimiento \texttt{ImprimirCadena} e invocación con tres cadenas.}, label={lst:imprimircadena}]
+main PROC
+    PUSH STD_OUTPUT_HANDLE
+    CALL GetStdHandle          ; obtener handle de salida
+    MOV hStdOut, EAX
+
+    PUSH OFFSET mensaje1
+    CALL ImprimirCadena
+    PUSH OFFSET mensaje2
+    CALL ImprimirCadena
+    PUSH OFFSET mensaje3
+    CALL ImprimirCadena
+    RET
+main ENDP
+
+ImprimirCadena PROC STDCALL, pCadena:DWORD
+    push ecx
+    push edx
+    mov edx, pCadena           ; EDX -> inicio de la cadena
+    mov ecx, 0                 ; ECX = contador de longitud
+_loop_calcular_longitud:
+    cmp byte ptr [edx], 0      ; byte actual == terminador nulo?
+    je _fin_loop
+    inc ecx                    ; un caracter mas
+    inc edx                    ; avanzar al siguiente byte
+    jmp _loop_calcular_longitud
+_fin_loop:
+    push 0
+    push offset caracteresEscritos
+    push ecx                   ; longitud calculada
+    push pCadena               ; direccion de la cadena
+    push hStdOut
+    call WriteConsoleA
+    pop edx
+    pop ecx
+    RET
+ImprimirCadena ENDP
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    cmp byte ptr [edx], 0
+    je _fin_loop
+\end{lstlisting}
+\textbf{Descripción}
+Compara el byte apuntado por \texttt{EDX} contra el terminador nulo y detiene el conteo cuando lo encuentra.
+\end{instruccionbox}
+
+El operador \texttt{byte ptr} indica que el acceso a memoria \texttt{[edx]} es de un solo byte, evitando la ambigüedad de tamaño. Mientras el carácter sea distinto de cero, el bucle incrementa el contador \texttt{ECX} y avanza el puntero \texttt{EDX}; al hallar el nulo, \texttt{JE} (\textit{Jump if Equal}) rompe el ciclo. Este recorrido es el que sustituye a la función \texttt{strlen} del lenguaje de alto nivel y permite imprimir cadenas de longitud arbitraria.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    push ecx
+    push pCadena
+    push hStdOut
+    call WriteConsoleA
+\end{lstlisting}
+\textbf{Descripción}
+Apila el número de caracteres, la dirección de la cadena y el \textit{handle} de salida, y llama a la API para imprimir.
+\end{instruccionbox}
+
+Los parámetros de \texttt{WriteConsoleA} se colocan en la pila de derecha a izquierda según su firma: el reservado en cero, el puntero a la variable que recibirá los caracteres escritos, el número de caracteres a escribir (\texttt{ECX}, calculado previamente), la dirección del texto y, en la cima, el \textit{handle} de salida obtenido con \texttt{GetStdHandle}. Como la función pertenece a la API y sigue \texttt{stdcall}, ella misma libera la pila al retornar.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=\textwidth]{fotos/ej1_salida.png}}
+\caption{Impresión de tres cadenas de distinta longitud mediante \texttt{ImprimirCadena}.}
+\label{fig:ej1}
+\end{figure}
+
+\subsection{Actividad 2: \texttt{LeerCadena}}
+La segunda actividad captura texto del usuario mediante \texttt{ReadConsoleA} y lo deja listo para ser reutilizado. El reto principal es eliminar la secuencia \texttt{0Dh 0Ah} que la tecla \textit{Enter} agrega al final del buffer. El procedimiento detecta esos dos bytes y los reemplaza por el terminador nulo; si por alguna razón no aparecen, coloca el nulo justo después del último carácter leído. El Código~\ref{lst:leercadena} presenta la rutina.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Procedimiento \texttt{LeerCadena}: captura y limpieza del salto de línea.}, label={lst:leercadena}]
+LeerCadena PROC STDCALL, pBuffer:DWORD
+    push eax
+    push ecx
+    push edx
+
+    push 0
+    push offset leidos         ; recibe el numero de caracteres leidos
+    push 130                   ; maximo a leer
+    push pBuffer               ; buffer destino
+    push hStdIn
+    call ReadConsoleA
+
+    mov eax, leidos
+    cmp eax, 2                 ; entrada demasiado corta?
+    jl fin_funcion
+
+    mov edx, pBuffer
+    add edx, eax
+    sub edx, 2                 ; EDX -> penultimo byte leido
+
+    cmp byte ptr [edx], 0Dh    ; retorno de carro?
+    jne no_crlf
+    cmp byte ptr [edx+1], 0Ah  ; salto de linea?
+    jne no_crlf
+    mov byte ptr [edx], 0      ; reemplazar CR por terminador nulo
+    jmp fin_funcion
+no_crlf:
+    mov edx, pBuffer
+    add edx, eax
+    mov byte ptr [edx], 0      ; terminar en nulo al final
+fin_funcion:
+    pop edx
+    pop ecx
+    pop eax
+    ret
+LeerCadena ENDP
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    mov edx, pBuffer
+    add edx, eax
+    sub edx, 2
+\end{lstlisting}
+\textbf{Descripción}
+Calcula la dirección de los dos últimos caracteres leídos para inspeccionar el fin de línea.
+\end{instruccionbox}
+
+Partiendo de la dirección base del buffer se le suma el número de caracteres leídos (\texttt{EAX}) para situarse al final, y luego se restan dos posiciones para apuntar al primer byte de la posible secuencia \texttt{0Dh 0Ah}. Este cálculo de puntero es indispensable porque la posición del salto de línea depende de cuánto haya escrito el usuario, dato que solo se conoce en tiempo de ejecución gracias al valor que \texttt{ReadConsoleA} devuelve en \texttt{leidos}.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    cmp byte ptr [edx], 0Dh
+    jne no_crlf
+    cmp byte ptr [edx+1], 0Ah
+    jne no_crlf
+    mov byte ptr [edx], 0
+\end{lstlisting}
+\textbf{Descripción}
+Verifica que los dos últimos bytes sean \texttt{CR} y \texttt{LF}, y de ser así los anula con el terminador nulo.
+\end{instruccionbox}
+
+Solo cuando ambas comparaciones confirman la presencia de retorno de carro y salto de línea se sobrescribe el primero de ellos con \texttt{0}, lo que trunca efectivamente la cadena justo antes del salto de línea. De este modo la cadena queda limpia y terminada en nulo, en condiciones de ser pasada a \texttt{ImprimirCadena} u otra función que espere ese formato.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=\textwidth]{fotos/ej2_salida.png}}
+\caption{Captura de texto con \texttt{LeerCadena} y su posterior impresión ya limpio.}
+\label{fig:ej2}
+\end{figure}
+
+\subsection{Actividad 3: \texttt{LeerNumero} e \texttt{ImprimirNumero}}
+La tercera actividad aborda la conversión entre texto y números enteros de 32 bits con signo. \texttt{LeerNumero} transforma la cadena tecleada en un valor entero que devuelve en \texttt{EAX}, mientras que \texttt{ImprimirNumero} recibe un entero en \texttt{EAX} y lo muestra en consola dígito a dígito. El Código~\ref{lst:leernumero} muestra la conversión de cadena a entero.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Procedimiento \texttt{LeerNumero}: conversión de cadena a entero con signo.}, label={lst:leernumero}]
+LeerNumero PROC STDCALL
+    push ecx
+    push edx
+    push ebx
+    push esi
+
+    push 0
+    push offset rwCount
+    push 30
+    push offset inputBuffer
+    push hStdIn
+    call ReadConsoleA
+
+    mov ecx, rwCount
+    cmp ecx, 2
+    jl _fin_lectura
+    mov byte ptr [inputBuffer + ecx - 2], 0   ; quitar CR/LF
+
+    xor eax, eax               ; acumulador = 0
+    xor ecx, ecx               ; indice = 0
+    mov ebx, 10                ; base decimal
+
+    mov esi, 1                 ; signo = +1
+    cmp byte ptr [inputBuffer], '-'
+    jne _ciclo
+    mov esi, -1                ; signo = -1
+    inc ecx                    ; saltar el signo
+_ciclo:
+    movzx edx, byte ptr [inputBuffer + ecx]
+    cmp dl, 0
+    je _fin_conversion
+    sub dl, 48                 ; ASCII -> valor del digito
+    push edx
+    mul ebx                    ; acumulador *= 10
+    pop edx
+    add eax, edx               ; acumulador += digito
+    inc ecx
+    jmp _ciclo
+_fin_conversion:
+    imul eax, esi              ; aplicar el signo
+_fin_lectura:
+    pop esi
+    pop ebx
+    pop edx
+    pop ecx
+    ret
+LeerNumero ENDP
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    sub dl, 48
+    mul ebx
+    add eax, edx
+\end{lstlisting}
+\textbf{Descripción}
+Convierte el carácter a su valor numérico y lo integra al acumulador mediante el esquema de Horner.
+\end{instruccionbox}
+
+Al restar \texttt{48} (código ASCII de \texttt{'0'}) al carácter se obtiene el valor del dígito. Antes de sumarlo se multiplica el acumulador \texttt{EAX} por la base \texttt{10} con \texttt{MUL EBX}, desplazando los dígitos previos una posición decimal; luego \texttt{ADD EAX, EDX} incorpora el nuevo dígito. El dígito se preserva temporalmente con \texttt{PUSH/POP} porque \texttt{MUL} sobrescribe \texttt{EDX} con la parte alta del producto. Repetir este paso por cada carácter reconstruye el número completo sin importar cuántas cifras tenga.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    mov esi, 1
+    cmp byte ptr [inputBuffer], '-'
+    jne _ciclo
+    mov esi, -1
+    inc ecx
+\end{lstlisting}
+\textbf{Descripción}
+Detecta el signo negativo inicial, guarda el signo en \texttt{ESI} y avanza el índice para no procesar el carácter \texttt{'-'} como dígito.
+\end{instruccionbox}
+
+El signo se trata por separado del valor absoluto. Si el primer carácter es un guion, \texttt{ESI} pasa a valer \texttt{-1} y el índice \texttt{ECX} se incrementa para saltar ese carácter; en caso contrario \texttt{ESI} permanece en \texttt{+1}. Al terminar la conversión, \texttt{IMUL EAX, ESI} aplica el signo al resultado, lo que permite soportar valores negativos como \texttt{-999} o \texttt{-2147483648} dentro del rango de 32 bits.
+
+La conversión inversa, de entero a texto, la realiza \texttt{ImprimirNumero}, mostrada en el Código~\ref{lst:imprimirnumero}. Si el número es negativo imprime primero el signo y lo convierte a positivo; después extrae los dígitos por divisiones sucesivas entre diez, apilándolos para invertir su orden.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Procedimiento \texttt{ImprimirNumero}: conversión de entero a cadena con uso de la pila.}, label={lst:imprimirnumero}]
+ImprimirNumero PROC STDCALL, valor:SDWORD
+    push eax
+    push ebx
+    push ecx
+    push edx
+
+    mov eax, valor
+    cmp eax, 0
+    jge _es_positivo
+    push eax                   ; preservar el valor negativo
+    mov byte ptr [bufferTemp], '-'
+    push 0
+    push offset rwCount
+    push 1
+    push offset bufferTemp
+    push hStdOut
+    call WriteConsoleA         ; imprimir el signo '-'
+    pop eax
+    neg eax                    ; trabajar con el valor absoluto
+_es_positivo:
+    mov ebx, 10
+    xor ecx, ecx               ; contador de digitos
+_loop_dividir:
+    xor edx, edx
+    div ebx                    ; EAX / 10, residuo en EDX
+    add dl, 48                 ; digito -> ASCII
+    push dx                    ; apilar el digito
+    inc ecx
+    test eax, eax
+    jnz _loop_dividir
+_loop_imprimir:
+    pop dx                     ; desapilar en orden inverso
+    mov byte ptr [bufferTemp], dl
+    push ecx
+    push 0
+    push offset rwCount
+    push 1
+    push offset bufferTemp
+    push hStdOut
+    call WriteConsoleA
+    pop ecx
+    dec ecx
+    cmp ecx, 0
+    jg _loop_imprimir
+
+    pop edx
+    pop ecx
+    pop ebx
+    pop eax
+    ret
+ImprimirNumero ENDP
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    xor edx, edx
+    div ebx
+    add dl, 48
+    push dx
+\end{lstlisting}
+\textbf{Descripción}
+Extrae el dígito menos significativo como residuo de la división entre diez, lo convierte a carácter y lo apila.
+\end{instruccionbox}
+
+Antes de cada \texttt{DIV} se limpia \texttt{EDX} con \texttt{XOR EDX, EDX}, ya que la división de 32 bits usa el par \texttt{EDX:EAX} como dividendo y un residuo basura corrompería el resultado. Tras \texttt{DIV EBX}, el cociente queda en \texttt{EAX} y el residuo (el dígito) en \texttt{EDX}; se le suma \texttt{48} para obtener su carácter ASCII y se apila. Como los dígitos salen del menos al más significativo, la pila los almacena en orden inverso al de impresión.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    pop dx
+    mov byte ptr [bufferTemp], dl
+    ...
+    dec ecx
+    jg _loop_imprimir
+\end{lstlisting}
+\textbf{Descripción}
+Desapila cada dígito en el orden correcto y lo imprime, repitiendo tantas veces como dígitos se contaron.
+\end{instruccionbox}
+
+LIFO de la pila resuelve la inversión, los dígitos se apilaron del último al primero, así que al desapilarlos con \texttt{POP} salen del primero al último, listos para imprimirse de izquierda a derecha. El contador \texttt{ECX}, que registró cuántos dígitos se apilaron, controla el número de iteraciones del bucle de impresión y se preserva con \texttt{PUSH/POP} alrededor de la llamada a \texttt{WriteConsoleA}, pues esta podría alterarlo.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=\textwidth]{fotos/ej3_positivo.png}}
+\caption{Lectura de un número con \texttt{LeerNumero} y su impresión con \texttt{ImprimirNumero}.}
+\label{fig:ej3_pos}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=\textwidth]{fotos/ej3_negativo.png}}
+\caption{Conversión correcta de un valor negativo, mostrando el signo y los dígitos.}
+\label{fig:ej3_neg}
+\end{figure}
+
+\subsection{Resumen de las funciones implementadas}
+La Tabla~\ref{tab:resumen_func} sintetiza el propósito de cada procedimiento, la función de la API en que se apoya y el concepto de ensamblador que ejercita.
+
+\begin{table}[H]
+\centering
+\caption{Resumen de las funciones de entrada/salida desarrolladas.}
+\label{tab:resumen_func}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}p{3.0cm}
+    >{\raggedright\arraybackslash}p{4.6cm}
+    >{\raggedright\arraybackslash}p{2.6cm}
+    >{\raggedright\arraybackslash}p{2.4cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Función} &
+\color{white}\textbf{Propósito} &
+\color{white}\textbf{API usada} &
+\color{white}\textbf{Concepto clave} \\
+\midrule
+\rowcolor{rowLight}
+\texttt{ImprimirCadena} & Imprime una cadena de cualquier longitud & \texttt{WriteConsoleA} & Cálculo de longitud (\textit{strlen}) \\
+\texttt{LeerCadena} & Captura texto y elimina el salto de línea & \texttt{ReadConsoleA} & Limpieza de buffer \\
+\rowcolor{rowLight}
+\texttt{LeerNumero} & Convierte texto a entero con signo & \texttt{ReadConsoleA} & Esquema de Horner (\textit{atoi}) \\
+\texttt{ImprimirNumero} & Convierte un entero con signo a texto & \texttt{WriteConsoleA} & Divisiones y pila (\textit{itoa}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusiones}
+Realizar esta práctica permitió comprender que incluso las operaciones de entrada y salida más elementales deben construirse a partir de los servicios del sistema operativo y de la manipulación directa de la memoria. Obtener los \textit{handles} con \texttt{GetStdHandle} y preparar la pila antes de cada \texttt{CALL} dejó en claro el contraste con un lenguaje de alto nivel, donde una sola línea basta para imprimir o leer, frente al ensamblador, donde cada parámetro debe colocarse de forma explícita respetando la convención \texttt{stdcall}.
+
+Calcular la longitud recorriendo byte a byte hasta el terminador y limpiar manualmente la secuencia \texttt{0Dh 0Ah} de la tecla \textit{Enter} mostró todo lo que un lenguaje de alto nivel resuelve de manera implícita al leer una línea de texto. Comprender la representación de las cadenas a nivel de bytes fue la base para que las funciones operasen sobre datos de longitud arbitraria sin tener que declararla.
+
+La conversión entre texto y enteros fue la parte más interesante. Implementar el esquema de Horner para leer un número y, sobre todo, aprovechar la naturaleza LIFO de la pila para invertir el orden de los dígitos al imprimirlo, evidenció cómo una estructura de datos sencilla resuelve con elegancia un problema concreto.
+
+\newpage
+\nocite{*}
+\printbibliography[title={Referencias}]
+\addcontentsline{toc}{section}{Referencias}
+
+\appendix
+\section{Repositorio de código}
+El código completo de los tres ejercicios en \textbf{MASM x86} desarrollados durante esta práctica se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/ApoloEM/OyAdeC/tree/main/practica7}
+\end{center}
+
+\end{document}
