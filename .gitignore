@@ -28,3 +28,6 @@ Release/
 *.recipe
 *.tlog/
 *.exe
+
+# Capturas / imagenes de reportes (no se versionan)
+fotos/
