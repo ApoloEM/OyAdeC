@@ -1,0 +1,1444 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\setlength{\parskip}{1\baselineskip}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{referencias.bib}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\usetikzlibrary{calc, positioning, shapes.geometric, arrows.meta, decorations.pathreplacing, fit, backgrounds}
+
+% ── Colores institucionales ──────────────────────────────────────────────────
+\definecolor{VerdeUABC}{RGB}{75, 83, 32}
+\definecolor{VerdeClaro}{RGB}{225, 232, 200}
+\definecolor{AzulPaso}{RGB}{210, 224, 240}
+\definecolor{RojoSalto}{RGB}{176, 0, 32}
+\definecolor{verdeData}{rgb}{0,0.5,0}
+\definecolor{rowLight}{RGB}{245, 246, 240}
+
+% ── Estilos compartidos para los diagramas del marco teórico ────────────────
+\tikzset{
+    flujoInicio/.style={
+        rounded corners=10pt, draw=VerdeUABC!85, line width=0.8pt,
+        fill=VerdeClaro, inner sep=5pt, font=\footnotesize\ttfamily,
+        align=center, minimum width=2.3cm, minimum height=0.8cm},
+    flujoProceso/.style={
+        draw=VerdeUABC!85, line width=0.8pt, fill=AzulPaso,
+        inner sep=5pt, font=\footnotesize\ttfamily, align=center,
+        minimum width=2.6cm, minimum height=0.85cm},
+    flujoDecision/.style={
+        diamond, aspect=2, draw=VerdeUABC!85, line width=0.8pt,
+        fill=white, inner sep=1pt, font=\scriptsize\ttfamily, align=center,
+        minimum width=2.6cm},
+    flujoFin/.style={
+        rounded corners=10pt, draw=RojoSalto!70, line width=0.8pt,
+        fill=RojoSalto!8, inner sep=5pt, font=\footnotesize\ttfamily,
+        align=center, minimum width=2.0cm, minimum height=0.8cm},
+    flecha/.style={-{Stealth[length=2.2mm]}, line width=0.8pt},
+    etiqueta/.style={font=\scriptsize\sffamily, inner sep=1.5pt},
+    celdaBit/.style={
+        draw=VerdeUABC!80, line width=0.6pt, minimum width=0.62cm,
+        minimum height=0.62cm, font=\scriptsize\ttfamily, fill=white}
+}
+
+% ── Tipos de columna personalizados ─────────────────────────────────────────
+\newcolumntype{R}{>{\centering\arraybackslash}p{2.5cm}}
+\newcolumntype{V}{>{\centering\arraybackslash}p{3cm}}
+
+\sisetup{detect-all, table-number-alignment=center}
+
+% ── Caja de análisis de instrucción ─────────────────────────────────────────
+\newtcolorbox{instruccionbox}{
+  colback=gray!5,
+  colframe=black,
+  title=Análisis de instrucción
+}
+
+% ── Colores para código ──────────────────────────────────────────────────────
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{hexcolor}{RGB}{0, 102, 204}
+\definecolor{bincolor}{RGB}{153, 0, 153}
+
+\lstdefinestyle{baseStyle}{
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen}\itshape,
+  numberstyle=\tiny\color{gray},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  captionpos=b,
+  numbers=left,
+  numbersep=8pt,
+  tabsize=4,
+  showstringspaces=false
+}
+
+\lstdefinestyle{assemblyStyle}{
+  style=baseStyle,
+  language=[x86masm]Assembler,
+  keywordstyle=\color{blue}\bfseries,
+  stringstyle=\color{codepurple},
+  morekeywords={section, global, extern, db, dw, dd, dq, times, equ},
+  morecomment=[l]{;},
+  commentstyle=\color{codegreen}\itshape
+}
+
+\lstset{style=assemblyStyle}
+
+% ── Comandos de notación ─────────────────────────────────────────────────────
+\newcommand{\inst}[1]{\texttt{\textbf{#1}}}
+\newcommand{\reg}[1]{\texttt{\textcolor{blue}{#1}}}
+\newcommand{\hex}[1]{\texttt{\textcolor{hexcolor}{#1}}}
+\newcommand{\bin}[1]{\texttt{\textcolor{bincolor}{#1}}}
+\newcommand{\instrformat}[2]{\texttt{\textbf{#1} #2}}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+}
+
+% ── Encabezado y pie de página ───────────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize OyAdeC}
+\chead{\footnotesize Práctica \numeroPractica: \tituloPractica}
+\rhead{\footnotesize 1110604}
+\cfoot{\thepage}
+
+% ── Formato de títulos ───────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{VerdeUABC}}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection.}{1em}{}
+
+% ── Metadatos del reporte ────────────────────────────────────────────────────
+\newcommand{\tituloPractica}{Banderas y Saltos Condicionales}
+\newcommand{\numeroPractica}{05}
+\newcommand{\profesor}{Ing. Félix Arredondo Santamaría}
+\newcommand{\fechaEntrega}{10/ABRIL/2026}
+\newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
+
+% ── Marco decorativo de página ───────────────────────────────────────────────
+\newcommand{\MarcoPagina}{
+  \begin{tikzpicture}[remember picture, overlay]
+    \draw [line width=1.2pt, color=VerdeUABC!90]
+      ($(current page.north west) + (0.7cm,-0.7cm)$)
+      rectangle
+      ($(current page.south east) + (-0.7cm,0.7cm)$);
+    \draw [line width=0.6pt, color=VerdeUABC!60]
+      ($(current page.north west) + (0.85cm,-0.85cm)$)
+      rectangle
+      ($(current page.south east) + (-0.85cm,0.85cm)$);
+  \end{tikzpicture}
+}
+
+% ── Zona reutilizable para capturas pendientes ──────────────────────────────
+\newcommand{\capturaplaceholder}[1]{%
+    \fbox{%
+        \begin{minipage}[c][4.8cm][c]{6.5cm}
+            \centering
+            \textcolor{gray}{\small\textit{Imagen no disponible}}\\[0.4em]
+            \texttt{#1}
+        \end{minipage}%
+    }%
+}
+
+\newcommand{\capturaindividual}[1]{%
+    \IfFileExists{#1}{%
+        \fbox{\includegraphics[scale=0.64]{#1}}%
+    }{%
+        \capturaplaceholder{#1}%
+    }%
+}
+
+\newcommand{\zonacaptura}[2]{
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \capturaindividual{#1}
+        \caption{Antes}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \capturaindividual{#2}
+        \caption{Después}
+    \end{subfigure}
+}
+
+\newcommand{\figuracapturaopcional}[4]{%
+    \begin{figure}[H]
+    \centering
+    \zonacaptura{#1}{#2}
+    \caption{#3}
+    \label{#4}
+    \end{figure}
+}
+
+% ═══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Portada ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \begin{center}
+    \includegraphics[width=4.5cm]{../recursos/escudo-actualizado-2022.png}
+    \hspace{1cm}
+    \includegraphics[width=5.5cm]{../recursos/1593484343817.jpg}
+    \vspace{0.5cm}
+
+    \LARGE \textbf{Universidad Autónoma de Baja California}\\
+    \Large Facultad de Ingeniería Mexicali\\
+    \Large Ingeniería en Computación\\
+    \vspace{1cm}
+
+    {\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+    \large \textbf{Reporte de Práctica \numeroPractica}\\
+    \vspace{0.1cm}
+    {\Huge {\tituloPractica}}\\
+    {\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+    \vfill
+    Organización y Arquitectura de Computadoras\\
+    \profesor \\
+    \vspace{1.5cm}
+    \integranteA \\
+    \vspace{1.5cm}
+    \textbf{Fecha de entrega} \\ \fechaEntrega \\
+    \vspace{1.5cm}
+    {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
+    Mexicali, Baja California\\ \today
+  \end{center}
+\end{titlepage}
+
+% ── Tabla de contenidos ──────────────────────────────────────────────────────
+\newpage
+\AddToShipoutPictureBG{\MarcoPagina}
+\tableofcontents
+
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\section{Introducción}
+El control de flujo es uno de los pilares fundamentales de cualquier paradigma de programación. En los lenguajes de alto nivel, estructuras como \texttt{if}, \texttt{while} o \texttt{for} abstraen por completo el mecanismo subyacente que las hace posibles. En el lenguaje ensamblador x86 podemos observar como ese mecanismo está implementado por las \textit{banderas de estado} del procesador, que registran el resultado de cada operación aritmética o lógica, y son las instrucciones de \textit{salto condicional} las que leen dichas banderas para decidir si el flujo de ejecución debe desviarse o continuar en secuencia.
+
+En este trabajo se hace uso de las banderas \texttt{EFLAGS} de la arquitectura x86, describiendo el propósito y comportamiento de sus banderas, las \textbf{banderas de estado} (\texttt{CF}, \texttt{PF}, \texttt{AF}, \texttt{ZF}, \texttt{SF} y \texttt{OF}), la \textbf{bandera de control de dirección} (\texttt{DF}) y las \textbf{banderas de sistema} (\texttt{TF}, \texttt{IF}, \texttt{IOPL}, \texttt{NT}, \texttt{RF}, \texttt{VM}, \texttt{AC}, \texttt{VIF}, \texttt{VIP} e \texttt{ID}). Asimismo, se implementan y verifican las instrucciones de salto condicional del conjunto de instrucciones MASM, tanto para operandos sin signo como para operandos con signo. Por último, se desarrollan dos programas que aplican estos mecanismos para resolver un contador oscilante de rango acotado y un clasificador de paridad numérica.
+
+\section{Problemática y Justificación}
+La comprensión del control de flujo a nivel de máquina es inseparable del dominio de la programación en ensamblador. En lenguajes de alto nivel, el compilador se encarga de traducir las condiciones lógicas a comparaciones de banderas y saltos condicionales; sin embargo, cuando se trabaja directamente sobre el hardware, el programador debe gestionar este proceso de forma explícita.
+
+Un error frecuente en la programación a bajo nivel consiste en aplicar instrucciones de salto sin considerar si los operandos involucrados son cantidades con o sin signo. Esta confusión es especialmente peligrosa en bucles de control y en la comparación de punteros o índices de memoria.
+
+El desarrollo de esta práctica se justifica como un paso necesario en la transición desde el estudio estático de las instrucciones aritméticas hacia la construcción de programas con lógica de control real. Comprender el papel de cada bandera del registro \texttt{EFLAGS} y dominar la semántica de cada salto condicional sienta las bases para implementar estructuras de control complejas, gestionar excepciones aritméticas y optimizar el rendimiento del código a nivel de instrucción.
+
+\section{Objetivos de la práctica}
+\textbf{Objetivo General}
+
+Comprender y aplicar el registro de banderas del procesador x86 y las instrucciones de salto condicional de MASM, para implementar estructuras de control de flujo a nivel de código máquina.
+
+\textbf{Objetivos Específicos}
+\begin{itemize}
+  \item \textbf{Identificar y describir} el propósito y el comportamiento de las banderas del registro \texttt{EFLAGS} de la arquitectura x86, clasificadas en: banderas de estado (\texttt{CF}, \texttt{PF}, \texttt{AF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}), bandera de control (\texttt{DF}) y banderas de sistema (\texttt{TF}, \texttt{IF}, \texttt{IOPL}, \texttt{NT}, \texttt{RF}, \texttt{VM}, \texttt{AC}, \texttt{VIF}, \texttt{VIP} e \texttt{ID}), señalando cuáles son directamente observables en el depurador de Visual Studio.
+  \item \textbf{Verificar empíricamente} el comportamiento de cada instrucción de salto condicional (\texttt{JE}, \texttt{JNE}, \texttt{JS}, \texttt{JNS}, \texttt{JP}, \texttt{JNP}, \texttt{JO}, \texttt{JNO}, \texttt{JB}, \texttt{JNB}, \texttt{JBE}, \texttt{JNBE}, \texttt{JL}, \texttt{JNL}, \texttt{JLE}, \texttt{JNLE} y sus alias), comprobando en cada caso el escenario en que el salto se efectúa y el escenario en que no.
+  \item \textbf{Implementar} un contador oscilante utilizando únicamente instrucciones \texttt{MOV}, \texttt{ADD}, \texttt{SUB} y saltos condicionales, que incremente de 5 a 10 y luego decremente de 10 a 5 de forma indefinida.
+  \item \textbf{Desarrollar} un programa que determine si un número almacenado en \texttt{AX} es par o impar, empleando operaciones aritméticas y saltos condicionales para almacenar el resultado en una variable de salida.
+\end{itemize}
+
+% ════════════════════════════════════════════════════════════════════════════
+\section{Marco Teórico}
+\subsection{El Registro de Banderas: \texttt{EFLAGS}}
+La arquitectura x86 de 32 bits incorpora un registro de propósito especial de 32 bits denominado \texttt{EFLAGS}, cuya función es almacenar el estado del procesador y el resultado cualitativo de las operaciones más recientes \cite{irvine2020assembly}. A diferencia de los registros de propósito general, \texttt{EFLAGS} no se lee ni se escribe directamente mediante la instrucción \texttt{MOV}; en cambio, sus bits individuales son actualizados automáticamente por el hardware como efecto secundario de instrucciones aritméticas, lógicas, de comparación y de sistema \cite{stallings2019computer}.
+
+Cada bit de \texttt{EFLAGS} con significado definido recibe el nombre de \textit{bandera} (\textit{flag}). Estas banderas se dividen en tres categorías principales \cite{tanenbaum2013structured, irvine2020assembly}:
+
+\begin{itemize}
+  \item \textbf{Banderas de estado} (\textit{status flags}): reflejan el resultado cualitativo de la última operación aritmética o lógica. Son \texttt{CF}, \texttt{PF}, \texttt{AF}, \texttt{ZF}, \texttt{SF} y \texttt{OF}. La mayor parte de las instrucciones de salto condicional examinan exclusivamente estas banderas.
+  \item \textbf{Bandera de control} (\textit{control flag}): modifica el comportamiento del procesador en las instrucciones de cadena (\texttt{MOVSB}, \texttt{CMPSB}, etc.). Es la bandera \texttt{DF} (\textit{Direction Flag}), y se configura con \texttt{CLD}/\texttt{STD}.
+  \item \textbf{Banderas de sistema} (\textit{system flags}): controlan el modo de operación del procesador y funciones de bajo nivel del sistema operativo. Incluyen \texttt{TF}, \texttt{IF}, \texttt{IOPL}, \texttt{NT}, \texttt{RF}, \texttt{VM}, \texttt{AC}, \texttt{VIF}, \texttt{VIP} e \texttt{ID}. Su modificación directa está generalmente restringida al nivel de privilegio del \textit{kernel} y no es accesible desde código de usuario ordinario.
+\end{itemize}
+
+El depurador integrado en Microsoft Visual Studio expone en tiempo real ocho de estas banderas mediante un panel de visualización que permite observar su evolución, instrucción a instrucción; las seis banderas de estado (\texttt{CF}, \texttt{PF}, \texttt{AF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}), la bandera de control (\texttt{DF}) y la bandera de sistema \texttt{IF}. El resto de las banderas de sistema no tienen representación directa en ese panel. La Figura~\ref{fig:eflags_layout} muestra la disposición de los bits significativos dentro del registro de 32 bits, coloreados según su categoría.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=0.685cm]
+    % Cada celda es un bit de EFLAGS; el orden es bit 21 (izq) a bit 0 (der).
+    % Formato de la lista: numero/etiqueta/colorRelleno (por categoria)
+    \foreach [count=\i from 0] \bit/\lbl/\col in {%
+        21/ID/RojoSalto!14, 20/VIP/RojoSalto!14, 19/VIF/RojoSalto!14,
+        18/AC/RojoSalto!14, 17/VM/RojoSalto!14, 16/RF/RojoSalto!14, 15/{}/black!7,
+        14/NT/RojoSalto!14, 13/IOPL/RojoSalto!14, 12/IOPL/RojoSalto!14,
+        11/OF/VerdeClaro, 10/DF/AzulPaso, 9/IF/RojoSalto!14, 8/TF/RojoSalto!14,
+        7/SF/VerdeClaro, 6/ZF/VerdeClaro, 5/{}/black!7, 4/AF/VerdeClaro,
+        3/{}/black!7, 2/PF/VerdeClaro, 1/{}/black!7, 0/CF/VerdeClaro} {
+        \node[celdaBit, fill=\col, minimum width=0.66cm,
+              font=\tiny\ttfamily] (b\bit) at (-\i,0) {\lbl};
+        \node[font=\tiny\sffamily, text=black!60, below=0.5pt of b\bit] {\bit};
+    }
+    % Llaves que delimitan las dos mitades del campo IOPL
+    \draw[decorate, decoration={brace, amplitude=4pt}, VerdeUABC!85, line width=0.6pt]
+        ($(b13.north west)+(0,2pt)$) -- ($(b12.north east)+(0,2pt)$)
+        node[midway, above=3pt, font=\tiny\sffamily, text=black] {IOPL};
+
+    % Leyenda de categorias
+    \begin{scope}[shift={(-21.3,-1.35)}]
+        \node[celdaBit, fill=VerdeClaro, minimum width=0.45cm, minimum height=0.4cm] (le) at (0,0) {};
+        \node[etiqueta, right=2pt of le] {Estado};
+        \node[celdaBit, fill=AzulPaso, minimum width=0.45cm, minimum height=0.4cm] (lc) at (3.1,0) {};
+        \node[etiqueta, right=2pt of lc] {Control};
+        \node[celdaBit, fill=RojoSalto!14, minimum width=0.45cm, minimum height=0.4cm] (ls) at (6.4,0) {};
+        \node[etiqueta, right=2pt of ls] {Sistema};
+        \node[celdaBit, fill=black!7, minimum width=0.45cm, minimum height=0.4cm] (lr) at (9.7,0) {};
+        \node[etiqueta, right=2pt of lr] {Reservado};
+    \end{scope}
+\end{tikzpicture}
+\caption{Disposición de los bits 0--21 del registro \texttt{EFLAGS}. Las seis banderas de estado, la de control (\texttt{DF}) y la de sistema \texttt{IF} son las observables en el depurador de Visual Studio.}
+\label{fig:eflags_layout}
+\end{figure}
+
+\subsection{Clasificación Completa de las Banderas de \texttt{EFLAGS}}
+
+A continuación se presenta la descripción de todas las banderas del registro \texttt{EFLAGS}, organizadas por categoría. La Tabla~\ref{tab:eflags_completo} sintetiza la información de cada una, indicando su bit de posición, nombre, abreviatura y accesibilidad desde el depurador de Visual Studio.
+
+\begin{table}[H]
+\centering
+\caption{Todas las banderas del registro \texttt{EFLAGS} de la arquitectura x86.}
+\label{tab:eflags_completo}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{4pt}
+\small
+\begin{tabular}{
+  >{\centering\arraybackslash}m{0.6cm}
+  >{\centering\arraybackslash}m{1.0cm}
+  >{\centering\arraybackslash}m{1.2cm}
+  >{\raggedright\arraybackslash}m{6.5cm}
+  >{\centering\arraybackslash}m{2.0cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Bit} &
+\color{white}\textbf{Abrev.} &
+\color{white}\textbf{VS label} &
+\color{white}\textbf{Nombre} &
+\color{white}\textbf{Categoría} \\
+\midrule
+
+\rowcolor{VerdeUABC!15}
+\multicolumn{5}{l}{\small\textit{Banderas de estado (status flags)}} \\
+\midrule
+
+\rowcolor{rowLight}
+0  & \texttt{CF} & \texttt{CY/NC} & Carry Flag & Estado \\
+2  & \texttt{PF} & \texttt{PE/PO} & Parity Flag & Estado \\
+\rowcolor{rowLight}
+4  & \texttt{AF} & \texttt{AC/NA} & Auxiliary Carry Flag & Estado \\
+6  & \texttt{ZF} & \texttt{ZR/NZ} & Zero Flag & Estado \\
+\rowcolor{rowLight}
+7  & \texttt{SF} & \texttt{PL/NG} & Sign Flag & Estado \\
+11 & \texttt{OF} & \texttt{OV/NV} & Overflow Flag & Estado \\
+\midrule
+
+\rowcolor{VerdeUABC!15}
+\multicolumn{5}{l}{\small\textit{Bandera de control}} \\
+\midrule
+
+\rowcolor{rowLight}
+10 & \texttt{DF} & \texttt{UP/DN} & Direction Flag & Control \\
+\midrule
+
+\rowcolor{VerdeUABC!15}
+\multicolumn{5}{l}{\small\textit{Banderas de sistema (system flags)}} \\
+\midrule
+
+\rowcolor{rowLight}
+8     & \texttt{TF}   & ---        & Trap Flag & Sistema \\
+9     & \texttt{IF}   & \texttt{EI/DI} & Interrupt Enable Flag & Sistema \\
+\rowcolor{rowLight}
+12--13 & \texttt{IOPL} & ---       & I/O Privilege Level & Sistema \\
+14    & \texttt{NT}   & ---        & Nested Task Flag & Sistema \\
+\rowcolor{rowLight}
+16    & \texttt{RF}   & ---        & Resume Flag & Sistema \\
+17    & \texttt{VM}   & ---        & Virtual-8086 Mode Flag & Sistema \\
+\rowcolor{rowLight}
+18    & \texttt{AC}   & ---        & Alignment Check Flag & Sistema \\
+19    & \texttt{VIF}  & ---        & Virtual Interrupt Flag & Sistema \\
+\rowcolor{rowLight}
+20    & \texttt{VIP}  & ---        & Virtual Interrupt Pending & Sistema \\
+21    & \texttt{ID}   & ---        & CPUID Available Flag & Sistema \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Banderas de estado}
+
+\textbf{\texttt{CF} — Carry Flag (bit 0):} Registra el acarreo o préstamo generado fuera del bit más significativo en operaciones aritméticas \emph{sin signo} \cite{irvine2020assembly}. En una suma, \texttt{CF = 1} indica que el resultado no cabe en el registro destino. En una resta o \texttt{CMP}, \texttt{CF = 1} indica que el minuendo es menor que el sustraendo. También es afectada por instrucciones de desplazamiento.
+
+\textbf{\texttt{PF} — Parity Flag (bit 2):} Examina el byte menos significativo del resultado y cuenta cuántos bits están en 1 \cite{elahi2022computer}. Si el conteo es par, \texttt{PF = 1}; si es impar, \texttt{PF = 0}.
+
+\textbf{\texttt{AF} — Auxiliary Carry Flag (bit 4):} Registra el acarreo producido entre el nibble bajo (bits 3--0) y el nibble alto (bits 7--4) de una operación. Es empleada principalmente por las instrucciones de ajuste decimal \texttt{DAA} y \texttt{DAS} para aritmética BCD.
+
+\textbf{\texttt{ZF} — Zero Flag (bit 6):} Se activa cuando el resultado de la operación es exactamente cero \cite{irvine2020assembly}. Es la bandera más consultada por los saltos condicionales.
+
+\textbf{\texttt{SF} — Sign Flag (bit 7):} Es una copia directa del bit más significativo del resultado \cite{elahi2022computer}. \texttt{SF = 1} indica resultado negativo en complemento a dos.
+
+\textbf{\texttt{OF} — Overflow Flag (bit 11):} Se activa cuando una operación aritmética \emph{con signo} produce un resultado fuera del rango representable \cite{irvine2020assembly}. Matemáticamente, \texttt{OF} se activa cuando el acarreo \emph{hacia} el bit de signo difiere del acarreo \emph{fuera} del bit de signo.
+
+\subsubsection*{Bandera de control}
+
+\textbf{\texttt{DF} — Direction Flag (bit 10):} Es la única bandera de control. Configura la dirección de avance de las instrucciones de cadena: \texttt{DF = 0} incrementa los punteros \texttt{ESI}/\texttt{EDI}; \texttt{DF = 1} los decrementa \cite{irvine2011assembly}. Se gestiona con \texttt{CLD} y \texttt{STD}.
+
+\subsubsection*{Banderas de sistema}
+
+\textbf{\texttt{TF} — Trap Flag (bit 8):} Cuando está activa (\texttt{TF = 1}), el procesador genera una interrupción de tipo 1 tras ejecutar cada instrucción, habilitando el modo de ejecución paso a paso (\textit{single-step}). Así funciona el depurador de Visual Studio \cite{stallings2019computer}.
+
+\textbf{\texttt{IF} — Interrupt Enable Flag (bit 9):} Controla si el procesador acepta interrupciones enmascarables de hardware \cite{tanenbaum2013structured}. \texttt{IF = 1} permite interrupciones; \texttt{IF = 0} las inhibe. Es la única bandera de sistema visible en el depurador de Visual Studio. Se configura con \texttt{STI} y \texttt{CLI}.
+
+\textbf{\texttt{IOPL} — I/O Privilege Level (bits 12--13):} Campo de 2 bits que indica el nivel de privilegio mínimo requerido para ejecutar instrucciones de E/S (\texttt{IN}, \texttt{OUT}) y para modificar \texttt{IF} \cite{patterson2016computer}. En modo protegido, el sistema operativo establece este campo; el código de usuario normalmente no puede modificarlo.
+
+\textbf{\texttt{NT} — Nested Task Flag (bit 14):} Indica que la tarea actual fue activada mediante la instrucción \texttt{CALL} de cambio de tarea, y que hay una tarea anidada (encadenada). Al ejecutar \texttt{IRET}, el procesador verifica \texttt{NT} para determinar si debe retornar a una tarea previa a través del enlace de la TSS (\textit{Task State Segment}) \cite{stallings2019computer}.
+
+\textbf{\texttt{RF} — Resume Flag (bit 16):} Suprime temporalmente las excepciones de punto de interrupción (\textit{breakpoint}) generadas por el registro de depuración \texttt{DR6} durante la ejecución de la instrucción inmediatamente posterior a una excepción de depuración. Permite que el depurador reanude la ejecución sin entrar en un bucle infinito de excepciones \cite{irvine2020assembly}.
+
+\textbf{\texttt{VM} — Virtual-8086 Mode Flag (bit 17):} Cuando está activo, el procesador ejecuta código en modo virtual-8086, emulando el entorno del procesador 8086 dentro del modo protegido de 32 bits. Permite ejecutar programas DOS heredados en sistemas operativos modernos \cite{tanenbaum2013structured}.
+
+\textbf{\texttt{AC} — Alignment Check Flag (bit 18):} En conjunto con el bit \texttt{AM} del registro de control \texttt{CR0}, habilita la comprobación de alineación en accesos a memoria; si el código de usuario intenta acceder a un dato no alineado (por ejemplo, un \texttt{WORD} en una dirección impar), el procesador genera una excepción de verificación de alineación (\textit{Alignment Check}, \#AC) \cite{elahi2022computer}.
+
+\textbf{\texttt{VIF} — Virtual Interrupt Flag (bit 19):} Es una imagen virtual de \texttt{IF} utilizada cuando el procesador opera en modo virtual-8086 con extensiones VME (\textit{Virtual Mode Extensions}). Permite a las aplicaciones de modo virtual manipular el estado de interrupción sin provocar una trampa al sistema operativo en cada operación \cite{stallings2019computer}.
+
+\textbf{\texttt{VIP} — Virtual Interrupt Pending (bit 20):} Indica que hay una o más interrupciones virtuales pendientes de atención. El software de sistema lo examina para determinar cuándo debe simular la entrega de interrupciones a las aplicaciones en modo virtual \cite{stallings2019computer}.
+
+\textbf{\texttt{ID} — ID Flag (bit 21):} Si este bit puede ser establecido y borrado por software, el procesador soporta la instrucción \texttt{CPUID}, que permite identificar el fabricante, la familia, el modelo y las características del procesador en tiempo de ejecución \cite{irvine2020assembly}.
+
+\subsubsection*{Convención de visualización en el depurador}
+
+El depurador de Visual Studio expone únicamente las banderas de uso cotidiano en programación, las seis de estado, la de control y la de sistema \texttt{IF}. Las muestra con etiquetas fijas de dos letras cuyo valor binario adyacente cambia entre \texttt{0} y \texttt{1} conforme se ejecutan las instrucciones: por ejemplo, \texttt{ZR~1} indica \texttt{ZF = 1} (bandera de cero activa); \texttt{ZR~0} indica \texttt{ZF = 0}. La Tabla~\ref{tab:banderas_vs} resume las etiquetas empleadas.
+
+\begin{table}[H]
+\centering
+\caption{Las ocho banderas visibles en el depurador de Visual Studio con sus etiquetas.}
+\label{tab:banderas_vs}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{
+    >{\centering\arraybackslash}m{1.1cm}
+    >{\centering\arraybackslash}m{2.5cm}
+    >{\centering\arraybackslash}m{2.2cm}
+    >{\raggedright\arraybackslash}m{5.0cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Flag} &
+\color{white}\textbf{Nombre} &
+\color{white}\textbf{Valor=1 / Valor=0} &
+\color{white}\textbf{Instrucciones que la usan} \\
+\midrule
+
+\rowcolor{rowLight}
+\texttt{OF} & Overflow    & \texttt{OV} / \texttt{NV} & \texttt{JO}, \texttt{JNO} \\
+\texttt{DF} & Direction   & \texttt{UP} / \texttt{DN} & \texttt{MOVSB}, \texttt{CMPSB}, etc. \\
+\rowcolor{rowLight}
+\texttt{IF} & Interrupt   & \texttt{EI} / \texttt{DI} & \texttt{STI}, \texttt{CLI} \\
+\texttt{SF} & Sign        & \texttt{PL} / \texttt{NG} & \texttt{JS}, \texttt{JNS}, \texttt{JL}, \texttt{JNL}, etc. \\
+\rowcolor{rowLight}
+\texttt{ZF} & Zero        & \texttt{ZR} / \texttt{NZ} & \texttt{JE/JZ}, \texttt{JNE/JNZ}, etc. \\
+\texttt{AF} & Aux. Carry  & \texttt{AC} / \texttt{NA} & \texttt{DAA}, \texttt{DAS} \\
+\rowcolor{rowLight}
+\texttt{PF} & Parity      & \texttt{PE} / \texttt{PO} & \texttt{JP/JPE}, \texttt{JNP/JPO} \\
+\texttt{CF} & Carry       & \texttt{CY} / \texttt{NC} & \texttt{JB}, \texttt{JNB}, \texttt{JBE}, etc. \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Instrucciones de Comparación y Prueba: \texttt{CMP} y \texttt{TEST}}
+Las instrucciones de salto condicional no operan de forma aislada; requieren que alguna instrucción previa haya actualizado las banderas de estado \cite{irvine2020assembly}. Las dos instrucciones diseñadas específicamente para este propósito son:
+
+\textbf{\texttt{CMP} (Compare):} Realiza internamente una resta entre los dos operandos (\texttt{destino - fuente}), pero \emph{descarta el resultado}; su único efecto es actualizar las banderas \texttt{ZF}, \texttt{SF}, \texttt{OF} y \texttt{CF}. Si ambos operandos son iguales, la resta produce cero y \texttt{ZF} pasa a 1. Si el destino es menor (sin signo), se genera un acarreo y \texttt{CF} pasa a 1 \cite{irvine2011assembly}.
+
+\textbf{\texttt{TEST} (Bit Test):} Realiza un \texttt{AND} lógico entre los dos operandos, descartando igualmente el resultado y actualizando solo \texttt{ZF}, \texttt{SF} y \texttt{PF}. Es especialmente útil para verificar si un bit específico está en 1, o para comprobar la paridad del contenido de un registro sin alterarlo \cite{elahi2022computer}.
+
+La Figura~\ref{fig:mecanismo_salto} resume el mecanismo de tres etapas que sostiene todo el control de flujo a bajo nivel; una instrucción aritmética, lógica o de comparación fija las banderas, y la instrucción de salto condicional las lee para decidir si bifurca o continúa en secuencia.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.9cm]
+    \node[flujoProceso] (op) {\texttt{CMP} / \texttt{TEST} / op.\\aritmética o lógica};
+    \node[flujoInicio, below=of op] (flags) {Actualiza \texttt{EFLAGS}\\(\texttt{ZF SF CF OF PF})};
+    \node[flujoDecision, below=1.05cm of flags] (dec) {¿Condición\\de bandera?};
+    \node[flujoProceso, below left=1.05cm and 0.9cm of dec] (salta) {Salta a la\\etiqueta};
+    \node[flujoFin, below right=1.05cm and 0.9cm of dec] (sigue) {Continúa en\\secuencia};
+
+    \draw[flecha] (op) -- (flags);
+    \draw[flecha] (flags) -- (dec);
+    \draw[flecha] (dec) -| node[etiqueta, near start, above] {se cumple} (salta);
+    \draw[flecha] (dec) -| node[etiqueta, near start, above] {no se cumple} (sigue);
+\end{tikzpicture}
+\caption{Mecanismo del control de flujo en x86: la instrucción previa fija las banderas de \texttt{EFLAGS} y el salto condicional las evalúa para tomar la bifurcación.}
+\label{fig:mecanismo_salto}
+\end{figure}
+
+\subsection{Instrucciones de Salto Condicional}
+Las instrucciones de salto condicional evalúan una o varias banderas del registro \texttt{EFLAGS} y, si la condición se cumple, transfieren el control de ejecución a la etiqueta indicada como operando; en caso contrario, la ejecución continúa en la instrucción siguiente \cite{irvine2020assembly}. Se dividen en tres categorías funcionales, resumidas en la Tabla~\ref{tab:saltos}.
+
+\begin{table}[H]
+\centering
+\caption{Resumen de instrucciones de salto condicional en MASM x86.}
+\label{tab:saltos}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{5pt}
+\small
+\begin{tabular}{
+  >{\centering\arraybackslash}m{3.0cm}
+  >{\centering\arraybackslash}m{2.5cm}
+  >{\raggedright\arraybackslash}m{7.5cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Instrucción / Alias} &
+\color{white}\textbf{Condición} &
+\color{white}\textbf{Significado} \\
+\midrule
+
+\rowcolor{rowLight}
+\texttt{JE} / \texttt{JZ}   & \texttt{ZF=1} & Salta si igual / si cero \\
+\texttt{JNE} / \texttt{JNZ} & \texttt{ZF=0} & Salta si no igual / si no cero \\
+\rowcolor{rowLight}
+\texttt{JS}                  & \texttt{SF=1} & Salta si resultado negativo \\
+\texttt{JNS}                 & \texttt{SF=0} & Salta si resultado no negativo \\
+\rowcolor{rowLight}
+\texttt{JP} / \texttt{JPE}  & \texttt{PF=1} & Salta si paridad par \\
+\texttt{JNP} / \texttt{JPO} & \texttt{PF=0} & Salta si paridad impar \\
+\rowcolor{rowLight}
+\texttt{JO}                  & \texttt{OF=1} & Salta si hay desbordamiento con signo \\
+\texttt{JNO}                 & \texttt{OF=0} & Salta si no hay desbordamiento \\
+\midrule
+\rowcolor{VerdeUABC!15}
+\multicolumn{3}{l}{\small\textit{Saltos sin signo (unsigned): examinan CF y ZF}} \\
+\midrule
+\rowcolor{rowLight}
+\texttt{JB} / \texttt{JNAE} & \texttt{CF=1} & Salta si por debajo (\textit{below}) \\
+\texttt{JNB} / \texttt{JAE} & \texttt{CF=0} & Salta si no por debajo (encima o igual) \\
+\rowcolor{rowLight}
+\texttt{JBE} / \texttt{JNA} & \texttt{CF=1 o ZF=1} & Salta si por debajo o igual \\
+\texttt{JNBE} / \texttt{JA} & \texttt{CF=0 y ZF=0} & Salta si por encima (\textit{above}) \\
+\midrule
+\rowcolor{VerdeUABC!15}
+\multicolumn{3}{l}{\small\textit{Saltos con signo (signed): examinan SF, OF y ZF}} \\
+\midrule
+\rowcolor{rowLight}
+\texttt{JL} / \texttt{JNGE} & \texttt{SF$\neq$OF} & Salta si menor que (\textit{less}) \\
+\texttt{JNL} / \texttt{JGE} & \texttt{SF=OF}      & Salta si mayor o igual \\
+\rowcolor{rowLight}
+\texttt{JLE} / \texttt{JNG} & \texttt{SF$\neq$OF o ZF=1} & Salta si menor o igual \\
+\texttt{JNLE} / \texttt{JG} & \texttt{SF=OF y ZF=0}      & Salta si mayor que \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Control de Flujo sin Estructuras de Alto Nivel}
+En ausencia de instrucciones como \texttt{if} o \texttt{while}, se construyen las estructuras de control combinando instrucciones de comparación, saltos condicionales y el salto incondicional \texttt{JMP} \cite{patterson2016computer}. Un bucle simple equivalente a un \texttt{while} se implementa típicamente como: (1) evaluar la condición de parada mediante \texttt{CMP} o \texttt{TEST}; (2) ejecutar un salto condicional hacia la instrucción posterior al cuerpo del bucle si la condición de terminación se cumple; (3) ejecutar el cuerpo del bucle; y (4) retornar al inicio del bucle con \texttt{JMP} \cite{irvine2020assembly}.
+
+\newpage
+% ════════════════════════════════════════════════════════════════════════════
+\section{Procedimiento}
+\textbf{Ejercicio 1. Investigue y describa las banderas disponibles en MASMx86.}
+
+Para este ejercicio, se realizó una investigación completa sobre el registro de estado de la arquitectura x86 (\texttt{EFLAGS}). Se identificaron y clasificaron todas las banderas disponibles en sus tres categorías, las \textbf{banderas de estado} que reflejan el resultado de las operaciones matemáticas (\texttt{CF}, \texttt{PF}, \texttt{AF}, \texttt{ZF}, \texttt{SF}, \texttt{OF}), la \textbf{bandera de control de dirección} (\texttt{DF}) y las \textbf{banderas de sistema} que controlan el modo de operación del procesador y funciones del sistema operativo (\texttt{TF}, \texttt{IF}, \texttt{IOPL}, \texttt{NT}, \texttt{RF}, \texttt{VM}, \texttt{AC}, \texttt{VIF}, \texttt{VIP} e \texttt{ID}). Se describió qué significa cada una, cómo cambian según las instrucciones ejecutadas y, en el caso de las banderas de estado, cuáles son observables directamente en el depurador de Visual Studio.
+
+\textbf{Ejercicio 2. Compruebe el funcionamiento básico (cuando entra y cuando no) de las siguientes instrucciones de salto condicional.}
+
+En este punto, escribí varios bloques de código para probar los saltos condicionales que venían en la guía, como \texttt{JE}, \texttt{JZ}, \texttt{JA}, \texttt{JB}, entre otros. Se hizo uso de la instrucción \texttt{CMP} para comparar números y la instrucción \texttt{TEST} para hacer pruebas lógicas. En cada caso, verificamos en el depurador de Visual Studio si el programa de verdad saltaba a la etiqueta indicada cuando se cumplía la condición y si seguía de largo cuando no se cumplía.
+
+\textbf{Ejercicio 3. Implementar un registro contador que aumente y luego disminuya dentro de un rango específico utilizando únicamente instrucciones de movimiento de registros, operaciones aritméticas y saltos condicionales.}
+
+Se desarrolló un programa que hace que un contador oscile entre 5 y 10. Empezamos con el valor 5 en una variable y usamos otra variable para saber si el contador debía subir o bajar. Usamos \texttt{ADD} para sumar y \texttt{SUB} para restar. Después de cada cambio, comparamos el valor con los límites (10 para subir y 5 para bajar) usando saltos condicionales. Cuando el contador llegaba a 10, el programa cambiaba la dirección para empezar a restar, y al llegar a 5, cambiaba otra vez para sumar, creando un ciclo infinito.
+
+\textbf{Ejercicio 4. Realizar un programa en ensamblador que determine si un número almacenado en un registro es par o impar, haciendo uso exclusivo de operaciones aritméticas y saltos condicionales.}
+
+Para saber si un número es par o impar, pusimos un valor en el registro \texttt{AX} y lo dividimos entre 2 usando la instrucción \texttt{DIV}. Como el residuo de la división se guarda automáticamente en el registro \texttt{DX}, usamos una comparación para ver si ese residuo era 0. Si el residuo era 0, el programa usaba un salto condicional para ir a una rutina que guardaba un 1 (par) en el resultado; si no era 0, saltaba a otra rutina para guardar un 0 (impar). Al final, el programa muestra el resultado guardado.
+
+% ════════════════════════════════════════════════════════════════════════════
+\section{Resultados con pruebas}
+\subsection{Ejercicio 1. Las banderas del procesador en MASM x86}
+
+Las banderas del registro \texttt{EFLAGS} constituyen el mecanismo mediante el cual la CPU comunica al programador el resultado cualitativo de sus operaciones, así como el estado de funcionamiento del procesador \cite{stallings2019computer}. Se dividen en tres categorías: banderas de estado, bandera de control y banderas de sistema. A continuación se describe cada una en detalle.
+
+\subsubsection*{Banderas de estado}
+
+\paragraph*{OV / NV — Overflow Flag (\texttt{OF}, bit 11)}
+
+La bandera de desbordamiento se activa (\texttt{OV}) cuando una operación aritmética con signo produce un resultado que excede el rango representable en el tipo de datos destino \cite{irvine2020assembly}. Por ejemplo, en aritmética de 16 bits con signo, el rango válido es $[-32768, +32767]$; sumar 1 a $+32767$ (\texttt{7FFFh}) produce $+32768$ (\texttt{8000h}), que el hardware interpreta como $-32768$ en complemento a dos, activando \texttt{OF}. Matemáticamente, \texttt{OF} se activa cuando el acarreo al bit de signo y el acarreo fuera del bit de signo son distintos.
+
+\begin{instruccionbox}
+\textbf{Instrucción que activa \texttt{OF}}
+\begin{lstlisting}
+    MOV AX, 32767    ; 0x7FFF: maximo positivo en 16 bits
+    ADD AX, 1        ; 32767+1 --> overflow --> OF=1
+    JO  jo_si        ; el salto se produce porque OF=1
+\end{lstlisting}
+\textbf{Descripción}: Al sumar 1 al valor máximo positivo representable, el resultado desborda el rango con signo. \texttt{OF} se activa y \texttt{JO} salta.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio1\_of\_antes.png}{fotos/ejercicio1\_of\_despues.png}
+\caption{Cambio de la bandera \texttt{OF} en el caso de desbordamiento con signo (\texttt{OV/NV}).}
+\label{fig:ej1_of}
+\end{figure}
+
+\paragraph*{PL / NG — Sign Flag (\texttt{SF}, bit 7)}
+
+La bandera de signo es una copia directa del bit más significativo (\textit{MSB}) del resultado de la última operación \cite{elahi2022computer}. Cuando \texttt{SF = 0} el bit alto del resultado es 0, indicando un valor positivo o cero en interpretación con signo. Cuando \texttt{SF = 1} el resultado es negativo. Es importante destacar que \texttt{SF} no distingue por sí sola entre un resultado correctamente negativo y un desbordamiento; para detectar el desbordamiento debe consultarse \texttt{OF} simultáneamente.
+
+\begin{instruccionbox}
+\textbf{Instrucción que activa \texttt{SF}}
+\begin{lstlisting}
+    MOV AX, -5
+    CMP AX, 0        ; -5-0=-5 --> SF=1 (resultado negativo)
+    JS  js_si        ; salta porque SF=1 --> NG activo
+\end{lstlisting}
+\textbf{Descripción}: \texttt{CMP AX, 0} realiza la resta $-5 - 0 = -5$; al ser negativo, el MSB del resultado es 1, activando \texttt{SF}. La instrucción \texttt{JS} detecta esta condición y salta.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio1\_sf\_antes.png}{fotos/ejercicio1\_sf\_despues.png}
+\caption{Cambio de la bandera \texttt{SF} al comparar un valor negativo (\texttt{PL/NG}).}
+\label{fig:ej1_sf}
+\end{figure}
+
+\paragraph*{ZR / NZ — Zero Flag (\texttt{ZF}, bit 6)}
+
+La bandera de cero es, posiblemente, la más utilizada en la programación en ensamblador \cite{irvine2020assembly}. Se activa (\texttt{ZR}) cuando el resultado de una operación es exactamente cero. En la práctica, \texttt{CMP destino, fuente} activa \texttt{ZF} cuando ambos operandos son iguales (ya que su diferencia es cero), lo que permite implementar comparaciones de igualdad de forma directa mediante \texttt{JE}/\texttt{JZ}. También se utiliza como condición de terminación de bucles, cuando el contador llega a cero \texttt{JZ} puede redirigir el flujo hacia la salida del ciclo.
+
+\begin{instruccionbox}
+\textbf{Instrucción que activa \texttt{ZF}}
+\begin{lstlisting}
+    MOV AX, 5
+    CMP AX, 10          ; 5 - 10 = -5 --> ZF=0
+    JZ  jz_no           ; NO SALTA porque ZF=0 --> NZ activo
+\end{lstlisting}
+\textbf{Descripción}: Al comparar valores distintos, la diferencia interna es diferente de cero. \texttt{ZF} no se activa y \texttt{JE} (alias de \texttt{JZ}) no ejecuta el salto.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio1\_zf\_antes.png}{fotos/ejercicio1\_zf\_despues.png}
+\caption{Cambio de la bandera \texttt{ZF} al comparar operandos distintos (\texttt{ZR/NZ}).}
+\label{fig:ej1_zf}
+\end{figure}
+
+\paragraph*{AC / NA — Auxiliary Carry Flag (\texttt{AF}, bit 4)}
+
+La bandera de acarreo auxiliar registra el acarreo producido entre los bits 3 y 4 de una operación de 8 bits, es decir, el acarreo del nibble inferior al nibble superior \cite{stallings2019computer}. Su uso primario es en la aritmética BCD (\textit{Binary-Coded Decimal}), donde las instrucciones de ajuste \texttt{DAA} (\textit{Decimal Adjust after Addition}) y \texttt{DAS} (\textit{Decimal Adjust after Subtraction}) la consultan para corregir resultados de sumas y restas sobre dígitos decimales codificados en binario.
+
+\paragraph*{PE / PO — Parity Flag (\texttt{PF}, bit 2)}
+
+La bandera de paridad examina el byte menos significativo del resultado y cuenta cuántos de sus 8 bits están en estado 1 \cite{elahi2022computer}. Si el conteo es par, \texttt{PF = 1} (depurador muestra \texttt{PE}); si es impar, \texttt{PF = 0} (depurador muestra \texttt{PO}). Históricamente, esta bandera proviene de la era de las comunicaciones serie, donde la paridad era el método más sencillo de detección de errores de transmisión. En x86, las instrucciones \texttt{JP}/\texttt{JPE} y \texttt{JNP}/\texttt{JPO} permiten bifurcar en función de la paridad.
+
+\begin{instruccionbox}
+\textbf{Instrucción que activa \texttt{PF}}
+\begin{lstlisting}
+    MOV AL, 3        ; 00000011b: dos bits en 1 -> paridad par
+    TEST AL, AL      ; AND consigo mismo actualiza PF
+    JP  jp_si        ; salta porque PF=1 --> PE activo
+\end{lstlisting}
+\textbf{Descripción}: El valor \texttt{3 = 00000011b} contiene exactamente dos bits en 1 (número par), por lo que \texttt{PF} se activa. \texttt{JP} detecta la paridad par y salta.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio1\_pf\_antes.png}{fotos/ejercicio1\_pf\_despues.png}
+\caption{Cambio de la bandera \texttt{PF} en pruebas de paridad (\texttt{PE/PO}).}
+\label{fig:ej1_pf}
+\end{figure}
+
+\paragraph*{CY / NC — Carry Flag (\texttt{CF}, bit 0)}
+
+La bandera de acarreo registra el bit que ``se desborda'' fuera del límite del registro durante operaciones aritméticas \emph{sin signo} \cite{irvine2020assembly}. En una suma, \texttt{CF = 1} indica que el resultado no cabe en el registro destino (overflow sin signo). En una resta o comparación, \texttt{CF = 1} indica que el minuendo es menor que el sustraendo (se necesitó un préstamo). También es afectada por instrucciones de desplazamiento de bits, donde recibe el bit que ``sale'' por el extremo del registro. Las instrucciones \texttt{JB}/\texttt{JNAE} y \texttt{JNB}/\texttt{JAE} la evalúan directamente.
+
+\begin{instruccionbox}
+\textbf{Instrucción que activa \texttt{CF}}
+\begin{lstlisting}
+    MOV AX, 3
+    CMP AX, 5        ;3-5 requiere prestamo sin signo --> CF=1
+    JB  jb_si        ;salta porque CF=1 --> CY activo
+\end{lstlisting}
+\textbf{Descripción}: Como 3 es menor que 5 en comparación sin signo, la resta interna genera un acarreo de préstamo. \texttt{CF} se activa y \texttt{JB} (\textit{Jump if Below}) ejecuta el salto.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio1\_cf\_antes.png}{fotos/ejercicio1\_cf\_despues.png}
+\caption{Cambio de la bandera \texttt{CF} en una comparación sin signo (\texttt{CY/NC}).}
+\label{fig:ej1_cf}
+\end{figure}
+
+\subsubsection*{Bandera de control}
+
+\paragraph*{UP / DN — Direction Flag (\texttt{DF}, bit 10)}
+
+La bandera de dirección es la única bandera de \textit{control} entre las visibles en el depurador; no refleja el resultado de una operación, sino que configura el comportamiento de las instrucciones de cadena \cite{irvine2011assembly}. Cuando \texttt{DF = 0} (depurador muestra \texttt{UP}), instrucciones como \texttt{MOVSB} o \texttt{CMPSB} incrementan automáticamente \texttt{ESI} y \texttt{EDI} al procesar cadenas de menor a mayor dirección. Cuando \texttt{DF = 1} (depurador muestra \texttt{DN}), los punteros se decrementan, procesando la cadena de mayor a menor dirección. Se configura con \texttt{CLD} (\textit{Clear Direction Flag}, $\texttt{DF}\leftarrow 0$) y \texttt{STD} (\textit{Set Direction Flag}, $\texttt{DF}\leftarrow 1$).
+
+\subsubsection*{Banderas de sistema}
+
+Las banderas de sistema controlan el modo de operación del procesador y son gestionadas principalmente por el sistema operativo. Su modificación directa desde código de usuario ordinario está generalmente restringida o prohibida por el nivel de privilegio (\textit{ring}). Estas banderas incluyen:
+
+\paragraph*{EI / DI — Interrupt Enable Flag (\texttt{IF}, bit 9)}
+
+Es la única bandera de sistema que el depurador de Visual Studio muestra directamente \cite{tanenbaum2013structured}. Cuando \texttt{IF = 1} el procesador puede responder a interrupciones enmascarables de hardware (teclado, temporizador, etc.). Cuando \texttt{IF = 0} estas interrupciones son ignoradas. Se gestiona con \texttt{STI} y \texttt{CLI}.
+
+\paragraph*{Trap Flag (\texttt{TF}, bit 8)}
+
+Cuando \texttt{TF = 1}, el procesador genera una excepción de depuración (tipo 1) tras ejecutar cada instrucción, habilitando la ejecución paso a paso (\textit{single-step}) \cite{stallings2019computer}.
+
+\paragraph*{I/O Privilege Level (\texttt{IOPL}, bits 12--13)}
+
+Campo de 2 bits que especifica el nivel de privilegio mínimo necesario para ejecutar instrucciones de entrada/salida (\texttt{IN}, \texttt{OUT}) y para modificar la bandera \texttt{IF} \cite{patterson2016computer}. El sistema operativo establece \texttt{IOPL} durante el arranque y el arranque de tareas; el código de usuario en \textit{ring 3} normalmente no puede alterar este campo.
+
+\paragraph*{Nested Task Flag (\texttt{NT}, bit 14)}
+
+Indica que la tarea en ejecución fue invocada mediante un cambio de tarea por \textit{gate} y que existe una tarea encadenada en la estructura TSS (\textit{Task State Segment}) \cite{stallings2019computer}. Al ejecutar \texttt{IRET} con \texttt{NT = 1}, el procesador retorna a la tarea previa a través del enlace en la TSS en lugar de retornar desde una interrupción convencional.
+
+\paragraph*{Resume Flag (\texttt{RF}, bit 16)}
+
+Suprime temporalmente las excepciones de punto de interrupción generadas por los registros de depuración \texttt{DR0}--\texttt{DR3} al reanudar la ejecución tras una excepción de depuración \cite{irvine2020assembly}. Sin esta bandera, el depurador entraría en un bucle infinito al intentar reanudar la ejecución en la misma instrucción que generó la excepción.
+
+\paragraph*{Virtual-8086 Mode Flag (\texttt{VM}, bit 17)}
+
+Cuando está activo, el procesador opera en modo virtual-8086, emulando el entorno del procesador 8086 dentro del modo protegido de 32 bits \cite{tanenbaum2013structured}. Este mecanismo permite ejecutar programas de DOS heredados en sistemas operativos modernos mediante la asignación de una máquina virtual 8086 para cada proceso de ese tipo.
+
+\paragraph*{Alignment Check Flag (\texttt{AC}, bit 18)}
+
+En combinación con el bit \texttt{AM} del registro \texttt{CR0}, habilita la verificación de alineación en accesos a memoria \cite{elahi2022computer}. Si el código de usuario intenta acceder a un dato no alineado en modo protegido (por ejemplo, un \texttt{DWORD} en una dirección no múltiplo de 4), el procesador genera la excepción \#AC.
+
+\paragraph*{Virtual Interrupt Flag (\texttt{VIF}, bit 19)}
+
+Imagen virtual de \texttt{IF} empleada cuando el procesador opera en modo virtual-8086 con las extensiones VME (\textit{Virtual Mode Extensions}) activas \cite{stallings2019computer}. Permite a las aplicaciones de modo virtual gestionar interrupciones sin provocar un cambio de contexto al sistema operativo en cada operación sobre \texttt{IF}.
+
+\paragraph*{Virtual Interrupt Pending (\texttt{VIP}, bit 20)}
+
+Indica que hay una o más interrupciones virtuales pendientes de ser entregadas a una aplicación en modo virtual-8086 \cite{stallings2019computer}. El software de sistema examina esta bandera para simular la entrega de interrupciones a las aplicaciones que operan en dicho modo.
+
+\paragraph*{ID Flag (\texttt{ID}, bit 21)}
+
+Si el software puede establecer y borrar este bit, el procesador soporta la instrucción \texttt{CPUID} \cite{irvine2020assembly}. Esta instrucción permite identificar al fabricante, la familia, el modelo y las extensiones de conjunto de instrucciones soportadas (SSE, AVX, etc.) en tiempo de ejecución, y es ampliamente utilizada por compiladores y bibliotecas de software para activar rutas de código optimizadas.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Ejercicio 2. Verificación de instrucciones de salto condicional}
+
+El programa completo de prueba se organiza en bloques consecutivos, cada uno verificando la instrucción en dos escenarios: uno en que el salto \textit{sí} se produce y otro en que \textit{no} se produce. El Código~\ref{lst:ejercicio2} presenta la implementación completa.
+
+\begin{lstlisting}[style=assemblyStyle,
+  caption={Código completo del Ejercicio~2: verificación de saltos condicionales.},
+  label={lst:ejercicio2}]
+    ; --- JE / JZ  (Salta si igual | ZF=1) ---
+    MOV AX, 5
+    CMP AX, 5       ; iguales -> ZF=1
+    JE  je_si       ; SI SALTA
+je_si:
+    MOV AX, 5
+    CMP AX, 10      ; distintos -> ZF=0
+    JZ  jz_no       ; NO SALTA
+jz_no:
+    ; --- JNE / JNZ  (Salta si no igual | ZF=0) ---
+    MOV AX, 5
+    CMP AX, 10      ; ZF=0
+    JNE jne_si      ; SI SALTA
+jne_si:
+    MOV AX, 5
+    CMP AX, 5       ; ZF=1
+    JNZ jnz_no      ; NO SALTA
+jnz_no:
+    ; --- JS  (Salta si negativo | SF=1) ---
+    MOV AX, -5
+    CMP AX, 0       ; SF=1  (-5 - 0 = -5)
+    JS  js_si       ; SI SALTA
+js_si:
+    MOV AX, 5
+    CMP AX, 0       ; SF=0
+    JS  js_no       ; NO SALTA
+js_no:
+    ; --- JNS  (Salta si no negativo | SF=0) ---
+    MOV AX, 5
+    CMP AX, 0       ; SF=0
+    JNS jns_si      ; SI SALTA
+jns_si:
+    MOV AX, -5
+    CMP AX, 0       ; SF=1
+    JNS jns_no      ; NO SALTA
+jns_no:
+    ; --- JP / JPE  (Salta si paridad par | PF=1) ---
+    MOV AL, 3       ; 00000011b -> 2 bits en 1 -> par
+    TEST AL, AL
+    JP  jp_si       ; SI SALTA
+jp_si:
+    MOV AL, 7       ; 00000111b -> 3 bits en 1 -> impar
+    TEST AL, AL
+    JPE jpe_no      ; NO SALTA
+jpe_no:
+    ; --- JNP / JPO  (Salta si paridad impar | PF=0) ---
+    MOV AL, 7       ; 00000111b -> impar
+    TEST AL, AL
+    JNP jnp_si      ; SI SALTA
+jnp_si:
+    MOV AL, 3       ; 00000011b -> par
+    TEST AL, AL
+    JPO jpo_no      ; NO SALTA
+jpo_no:
+    ; --- JO  (Salta si overflow | OF=1) ---
+    MOV AX, 32767   ; maximo positivo en 16 bits con signo
+    ADD AX, 1       ; 32767+1 -> overflow -> OF=1
+    JO  jo_si       ; SI SALTA
+jo_si:
+    MOV AL, 50
+    ADD AL, 10      ; 60, sin overflow -> OF=0
+    JO  jo_no       ; NO SALTA
+jo_no:
+    ; --- JNO  (Salta si no hay overflow | OF=0) ---
+    MOV AL, 50
+    ADD AL, 10      ; OF=0
+    JNO jno_si      ; SI SALTA
+jno_si:
+    MOV AL, 127     ; maximo positivo en 8 bits con signo
+    ADD AL, 1       ; 127+1 -> overflow -> OF=1
+    JNO jno_no      ; NO SALTA
+jno_no:
+    ; === Saltos SIN SIGNO (unsigned) ===
+    ; --- JB / JNAE  (Salta si abajo | CF=1) ---
+    MOV AX, 3
+    CMP AX, 5       ; 3 < 5 -> CF=1
+    JB  jb_si       ; SI SALTA
+jb_si:
+    MOV AX, 5
+    CMP AX, 3       ; 5 >= 3 -> CF=0
+    JNAE jnae_no    ; NO SALTA
+jnae_no:
+    ; --- JNB / JAE  (Salta si no abajo | CF=0) ---
+    MOV AX, 5
+    CMP AX, 3       ; CF=0
+    JNB jnb_si      ; SI SALTA
+jnb_si:
+    MOV AX, 3
+    CMP AX, 5       ; CF=1
+    JAE jae_no      ; NO SALTA
+jae_no:
+    ; --- JBE / JNA  (Salta si abajo o igual | CF=1 o ZF=1) ---
+    MOV AX, 5
+    CMP AX, 5       ; ZF=1
+    JBE jbe_si      ; SI SALTA
+jbe_si:
+    MOV AX, 10
+    CMP AX, 5       ; CF=0, ZF=0
+    JNA jna_no      ; NO SALTA
+jna_no:
+    ; --- JNBE / JA  (Salta si por encima | CF=0 y ZF=0) ---
+    MOV AX, 10
+    CMP AX, 5       ; CF=0, ZF=0
+    JNBE jnbe_si    ; SI SALTA
+jnbe_si:
+    MOV AX, 5
+    CMP AX, 5       ; ZF=1
+    JA  ja_no       ; NO SALTA
+ja_no:
+    ; === Saltos CON SIGNO (signed) ===
+    ; --- JL / JNGE  (Salta si menor | SF!=OF) ---
+    MOV AX, -5
+    CMP AX, 3       ; -5 < 3 -> SF!=OF
+    JL  jl_si       ; SI SALTA
+jl_si:
+    MOV AX, 5
+    CMP AX, 3       ; 5 >= 3 -> SF=OF
+    JNGE jnge_no    ; NO SALTA
+jnge_no:
+    ; --- JNL / JGE  (Salta si no menor | SF=OF) ---
+    MOV AX, 5
+    CMP AX, 3       ; SF=OF
+    JNL jnl_si      ; SI SALTA
+jnl_si:
+    MOV AX, -5
+    CMP AX, 3       ; SF!=OF
+    JGE jge_no      ; NO SALTA
+jge_no:
+    ; --- JLE / JNG  (Salta si menor o igual | SF!=OF o ZF=1) ---
+    MOV AX, -5
+    CMP AX, 3       ; SF!=OF
+    JLE jle_si      ; SI SALTA
+jle_si:
+    MOV AX, 10
+    CMP AX, 3       ; ZF=0, SF=OF
+    JNG jng_no      ; NO SALTA
+jng_no:
+    ; --- JNLE / JG  (Salta si mayor | SF=OF y ZF=0) ---
+    MOV AX, 10
+    CMP AX, 3       ; SF=OF, ZF=0
+    JNLE jnle_si    ; SI SALTA
+jnle_si:
+    MOV AX, -5
+    CMP AX, 3       ; SF!=OF
+    JG  jg_no       ; NO SALTA
+jg_no:
+\end{lstlisting}
+
+A continuación se analiza cada grupo de instrucciones de salto, mostrando el estado de las banderas relevantes y el comportamiento observado.
+
+\subsubsection*{Grupo 1: \texttt{JE}/\texttt{JZ} y \texttt{JNE}/\texttt{JNZ} — Bandera \texttt{ZF}}
+
+\begin{instruccionbox}
+\textbf{Instrucciones}
+\begin{lstlisting}
+    MOV AX, 5
+    CMP AX, 5       ; ZF=1  -> JE salta (SI)
+    JE  je_si
+
+    MOV AX, 5
+    CMP AX, 10      ; ZF=0  -> JZ no salta (NO)
+    JZ  jz_no
+\end{lstlisting}
+\textbf{Descripción}: \texttt{JE} y \texttt{JZ} son alias de la misma instrucción de máquina. Saltan únicamente cuando \texttt{ZF = 1}, lo que ocurre si y solo si los dos operandos de \texttt{CMP} son iguales (su diferencia es cero).
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Estado de las banderas para \texttt{JE}/\texttt{JZ}.}
+\begin{tabular}{ccccl}
+\toprule
+\textbf{Escenario} & \textbf{AX} & \textbf{Operando CMP} & \textbf{ZF (ZR/NZ)} & \textbf{Resultado} \\
+\midrule
+Caso salta     & \texttt{5} & \texttt{5}  & \texttt{ZR} (ZF=1) & Salta a \texttt{je\_si} \\
+Caso no salta  & \texttt{5} & \texttt{10} & \texttt{NZ} (ZF=0) & Continúa en \texttt{jz\_no} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio2\_grupo1\_zf\_antes.png}{fotos/ejercicio2\_grupo1\_zf\_despues.png}
+\caption{Verificación de \texttt{JE/JZ} y \texttt{JNE/JNZ}: estado de la bandera \texttt{ZF} (\texttt{ZR/NZ}) antes y después de la comparación.}
+\label{fig:ej2_grupo1_zf}
+\end{figure}
+
+\subsubsection*{Grupo 2: \texttt{JS} y \texttt{JNS} — Bandera \texttt{SF}}
+
+\begin{instruccionbox}
+\textbf{Instrucciones}
+\begin{lstlisting}
+    MOV AX, -5
+    CMP AX, 0       ; SF=1  -> JS salta (SI)
+    JS  js_si
+
+    MOV AX, 5
+    CMP AX, 0       ; SF=0  -> JS no salta (NO)
+    JS  js_no
+\end{lstlisting}
+\textbf{Descripción}: \texttt{JS} salta cuando la bandera de signo (\texttt{SF}) está activa, lo que indica que el resultado de \texttt{CMP} fue negativo (el MSB del resultado es 1).
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Estado de las banderas para \texttt{JS} y \texttt{JNS}.}
+\begin{tabular}{ccccl}
+\toprule
+\textbf{Instrucción} & \textbf{AX} & \textbf{CMP con} & \textbf{SF (PL/NG)} & \textbf{Resultado} \\
+\midrule
+\texttt{JS}  (salta)     & \texttt{-5} & \texttt{0} & \texttt{NG} (SF=1) & Salta \\
+\texttt{JS}  (no salta)  & \texttt{5}  & \texttt{0} & \texttt{PL} (SF=0) & Continúa \\
+\texttt{JNS} (salta)     & \texttt{5}  & \texttt{0} & \texttt{PL} (SF=0) & Salta \\
+\texttt{JNS} (no salta)  & \texttt{-5} & \texttt{0} & \texttt{NG} (SF=1) & Continúa \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio2\_grupo2\_sf\_antes.png}{fotos/ejercicio2\_grupo2\_sf\_despues.png}
+\caption{Verificación de \texttt{JS/JNS}: estado de la bandera \texttt{SF} (\texttt{PL/NG}) antes y después de la comparación.}
+\label{fig:ej2_grupo2_sf}
+\end{figure}
+
+\subsubsection*{Grupo 3: \texttt{JP}/\texttt{JPE} y \texttt{JNP}/\texttt{JPO} — Bandera \texttt{PF}}
+
+\begin{instruccionbox}
+\textbf{Instrucciones}
+\begin{lstlisting}
+    MOV AL, 3       ; 00000011: dos bits en 1-> paridad par
+    TEST AL, AL     ; PF=1
+    JP  jp_si       ; SI SALTA
+
+    MOV AL, 7       ; 00000111: tres bits en 1-> paridad impar
+    TEST AL, AL     ; PF=0
+    JPE jpe_no      ; NO SALTA
+\end{lstlisting}
+\textbf{Descripción}: \texttt{TEST AL, AL} realiza un AND consigo mismo, actualizando \texttt{PF} según la paridad del byte bajo del resultado (que es el propio \texttt{AL}). \texttt{3 = 00000011b} tiene dos unos (par), activando \texttt{PF}; \texttt{7 = 00000111b} tiene tres unos (impar), dejando \texttt{PF = 0}.
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Estado de \texttt{PF} para los valores de prueba.}
+\begin{tabular}{ccccl}
+\toprule
+\textbf{AL} & \textbf{Binario} & \textbf{Bits en 1} & \textbf{PF (PE/PO)} & \textbf{JP resultado} \\
+\midrule
+\texttt{03h} & \texttt{00000011} & 2 (par) & \texttt{PE} (PF=1) & Salta \\
+\texttt{07h} & \texttt{00000111} & 3 (impar) & \texttt{PO} (PF=0) & No salta \\
+\bottomrule
+\end{tabular}
+\end{table}
+\figuracapturaopcional{fotos/ejercicio2\_grupo3\_pf\_antes.png}{fotos/ejercicio2\_grupo3\_pf\_despues.png}{Verificación de \texttt{JP/JPE} y \texttt{JNP/JPO}: estado de la bandera \texttt{PF} (\texttt{PE/PO}) antes y después de la comparación.}{fig:ej2_grupo3_pf}
+
+\subsubsection*{Grupo 4: \texttt{JO} y \texttt{JNO} — Bandera \texttt{OF}}
+
+\begin{instruccionbox}
+\textbf{Instrucciones}
+\begin{lstlisting}
+    MOV AX, 32767   ; 0x7FFF: maximo positivo en 16 bits con signo
+    ADD AX, 1       ; 32767+1 = -32768 -> overflow -> OF=1
+    JO  jo_si       ; SI SALTA
+
+    MOV AL, 50
+    ADD AL, 10      ; 60, sin overflow -> OF=0
+    JO  jo_no       ; NO SALTA
+\end{lstlisting}
+\textbf{Descripción}: El primer caso provoca un desbordamiento con signo al incrementar el valor máximo de un \texttt{WORD} con signo. En el segundo caso, $50 + 10 = 60$ cabe perfectamente en 8 bits con signo, por lo que \texttt{OF} no se activa.
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Estado de \texttt{OF} para los casos de prueba de \texttt{JO}/\texttt{JNO}.}
+\begin{tabular}{lcccl}
+\toprule
+\textbf{Operación} & \textbf{Resultado} & \textbf{¿Overflow?} & \textbf{OF (OV/NV)} & \textbf{Resultado salto} \\
+\midrule
+\texttt{32767 + 1} (WORD) & $-32768$ (erróneo) & Sí & \texttt{OV} & \texttt{JO} salta \\
+\texttt{50 + 10} (BYTE)   & $60$ (correcto)    & No & \texttt{NV} & \texttt{JO} no salta \\
+\texttt{50 + 10} (BYTE)   & $60$ (correcto)    & No & \texttt{NV} & \texttt{JNO} salta \\
+\texttt{127 + 1} (BYTE)   & $-128$ (erróneo)   & Sí & \texttt{OV} & \texttt{JNO} no salta \\
+\bottomrule
+\end{tabular}
+\end{table}
+\figuracapturaopcional{fotos/ejercicio2\_grupo4\_of\_antes.png}{fotos/ejercicio2\_grupo4\_of\_despues.png}{Verificación de \texttt{JO/JNO}: estado de la bandera \texttt{OF} (\texttt{OV/NV}) antes y después de la operación.}{fig:ej2_grupo4_of}
+
+\subsubsection*{Grupo 5: Saltos sin signo — \texttt{JB}/\texttt{JNAE}, \texttt{JNB}/\texttt{JAE}, \texttt{JBE}/\texttt{JNA}, \texttt{JNBE}/\texttt{JA}}
+
+Los saltos sin signo examinan la bandera de acarreo (\texttt{CF}) y, en el caso de \texttt{JBE}/\texttt{JNBE}, también \texttt{ZF}. Son apropiados para comparar índices de arreglo, punteros o cualquier cantidad que conceptualmente no puede ser negativa.
+
+\begin{instruccionbox}
+\textbf{Instrucciones representativas}
+\begin{lstlisting}
+    MOV AX, 3
+    CMP AX, 5       ; 3 < 5 -> CF=1
+    JB  jb_si       ; SI SALTA (3 esta por debajo de 5)
+
+    MOV AX, 5
+    CMP AX, 3       ; 5 >= 3 -> CF=0
+    JNAE jnae_no    ; NO SALTA (5 no esta por debajo de 3)
+\end{lstlisting}
+\textbf{Descripción}: \texttt{JB} (\textit{Jump if Below}) salta si \texttt{CF = 1}, lo que indica que la resta interna de \texttt{CMP} requirió un préstamo, es decir, que el operando destino es menor en sentido sin signo que el operando fuente.
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Resumen de saltos sin signo y sus condiciones de bandera.}
+\small
+\begin{tabular}{lccl}
+\toprule
+\textbf{Instrucción} & \textbf{CF} & \textbf{ZF} & \textbf{Condición de salto} \\
+\midrule
+\texttt{JB} / \texttt{JNAE} & 1 & --- & Salta si por debajo (sin signo) \\
+\texttt{JNB} / \texttt{JAE} & 0 & --- & Salta si no por debajo (encima o igual) \\
+\texttt{JBE} / \texttt{JNA} & 1 o --- & --- o 1 & Salta si por debajo o igual \\
+\texttt{JNBE} / \texttt{JA} & 0 & 0 & Salta si por encima \\
+\bottomrule
+\end{tabular}
+\end{table}
+\figuracapturaopcional{fotos/ejercicio2\_grupo5\_cf\_zf\_antes.png}{fotos/ejercicio2\_grupo5\_cf\_zf\_despues.png}{Verificación de los saltos sin signo (\texttt{JB}, \texttt{JNB}, \texttt{JBE}, \texttt{JA}): estado de \texttt{CF} y \texttt{ZF} antes y después.}{fig:ej2_grupo5_unsigned}
+
+\subsubsection*{Grupo 6: Saltos con signo — \texttt{JL}/\texttt{JNGE}, \texttt{JNL}/\texttt{JGE}, \texttt{JLE}/\texttt{JNG}, \texttt{JNLE}/\texttt{JG}}
+
+Los saltos con signo evalúan la relación entre \texttt{SF} y \texttt{OF}. Cuando ambas banderas tienen el mismo valor (\texttt{SF = OF}), la comparación produjo un resultado no negativo desde el punto de vista con signo; cuando difieren (\texttt{SF $\neq$ OF}), el resultado es negativo con signo. Esta distinción se usa al comparar valores que pueden ser negativos.
+
+\begin{instruccionbox}
+\textbf{Instrucciones representativas}
+\begin{lstlisting}
+    MOV AX, -5
+    CMP AX, 3       ; -5 < 3 -> SF!=OF -> JL salta (SI)
+    JL  jl_si
+
+    MOV AX, 5
+    CMP AX, 3       ; 5 >= 3 -> SF=OF -> JNGE no salta (NO)
+    JNGE jnge_no
+\end{lstlisting}
+\textbf{Descripción}: La comparación $-5$ vs $3$ produce una resta $-5 - 3 = -8$, cuyo resultado negativo activa \texttt{SF}. Como no hay desbordamiento, \texttt{OF = 0}. La desigualdad \texttt{SF $\neq$ OF} confirma que $-5 < 3$ con signo, y \texttt{JL} salta.
+\end{instruccionbox}
+
+\begin{table}[H]
+\centering
+\caption{Resumen de saltos con signo y sus condiciones de bandera.}
+\small
+\begin{tabular}{lccl}
+\toprule
+\textbf{Instrucción} & \textbf{SF vs OF} & \textbf{ZF} & \textbf{Condición de salto} \\
+\midrule
+\texttt{JL} / \texttt{JNGE}  & SF $\neq$ OF & --- & Salta si menor que (con signo) \\
+\texttt{JNL} / \texttt{JGE}  & SF $=$ OF    & --- & Salta si mayor o igual (con signo) \\
+\texttt{JLE} / \texttt{JNG}  & SF $\neq$ OF o & 1   & Salta si menor o igual (con signo) \\
+\texttt{JNLE} / \texttt{JG}  & SF $=$ OF y  & 0   & Salta si mayor que (con signo) \\
+\bottomrule
+\end{tabular}
+\end{table}
+\figuracapturaopcional{fotos/ejercicio2\_grupo6\_sf\_of\_zf\_antes.png}{fotos/ejercicio2\_grupo6\_sf\_of\_zf\_despues.png}{Verificación de los saltos con signo (\texttt{JL}, \texttt{JNL}, \texttt{JLE}, \texttt{JG}): relación entre \texttt{SF}, \texttt{OF} y \texttt{ZF} antes y después.}{fig:ej2_grupo6_signed}
+
+\subsubsection*{Resumen de instrucciones de salto condicional}
+
+\begin{table}[H]
+\centering
+\caption{Tabla de verificación de todas las instrucciones de salto probadas.}
+\label{tab:resumen_saltos}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lclcc}
+\toprule
+\textbf{Instrucción} & \textbf{Bandera(s)} & \textbf{Operandos de prueba} & \textbf{¿Salta?} & \textbf{Observado} \\
+\midrule
+\texttt{JE}   & ZF=1 & AX=5, CMP 5   & Sí  & \checkmark \\
+\texttt{JZ}   & ZF=1 & AX=5, CMP 10  & No  & \checkmark \\
+\texttt{JNE}  & ZF=0 & AX=5, CMP 10  & Sí  & \checkmark \\
+\texttt{JNZ}  & ZF=0 & AX=5, CMP 5   & No  & \checkmark \\
+\texttt{JS}   & SF=1 & AX=-5, CMP 0  & Sí  & \checkmark \\
+\texttt{JS}   & SF=0 & AX=5, CMP 0   & No  & \checkmark \\
+\texttt{JNS}  & SF=0 & AX=5, CMP 0   & Sí  & \checkmark \\
+\texttt{JNS}  & SF=1 & AX=-5, CMP 0  & No  & \checkmark \\
+\texttt{JP}   & PF=1 & AL=03h (par)  & Sí  & \checkmark \\
+\texttt{JPE}  & PF=0 & AL=07h (impar)& No  & \checkmark \\
+\texttt{JNP}  & PF=0 & AL=07h (impar)& Sí  & \checkmark \\
+\texttt{JPO}  & PF=1 & AL=03h (par)  & No  & \checkmark \\
+\texttt{JO}   & OF=1 & AX=7FFF+1     & Sí  & \checkmark \\
+\texttt{JO}   & OF=0 & AL=50+10      & No  & \checkmark \\
+\texttt{JNO}  & OF=0 & AL=50+10      & Sí  & \checkmark \\
+\texttt{JNO}  & OF=1 & AL=7F+1       & No  & \checkmark \\
+\texttt{JB}   & CF=1 & AX=3, CMP 5   & Sí  & \checkmark \\
+\texttt{JNAE} & CF=0 & AX=5, CMP 3   & No  & \checkmark \\
+\texttt{JNB}  & CF=0 & AX=5, CMP 3   & Sí  & \checkmark \\
+\texttt{JAE}  & CF=1 & AX=3, CMP 5   & No  & \checkmark \\
+\texttt{JBE}  & ZF=1 & AX=5, CMP 5   & Sí  & \checkmark \\
+\texttt{JNA}  & CF=0,ZF=0 & AX=10,CMP 5 & No & \checkmark \\
+\texttt{JNBE} & CF=0,ZF=0 & AX=10,CMP 5 & Sí & \checkmark \\
+\texttt{JA}   & ZF=1 & AX=5, CMP 5   & No  & \checkmark \\
+\texttt{JL}   & SF$\neq$OF & AX=-5,CMP 3 & Sí & \checkmark \\
+\texttt{JNGE} & SF=OF & AX=5, CMP 3  & No  & \checkmark \\
+\texttt{JNL}  & SF=OF & AX=5, CMP 3  & Sí  & \checkmark \\
+\texttt{JGE}  & SF$\neq$OF & AX=-5,CMP 3 & No & \checkmark \\
+\texttt{JLE}  & SF$\neq$OF & AX=-5,CMP 3 & Sí & \checkmark \\
+\texttt{JNG}  & SF=OF,ZF=0 & AX=10,CMP 3 & No & \checkmark \\
+\texttt{JNLE} & SF=OF,ZF=0 & AX=10,CMP 3 & Sí & \checkmark \\
+\texttt{JG}   & SF$\neq$OF & AX=-5,CMP 3 & No & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Ejercicio 3. Contador oscilante en el rango [5, 10]}
+
+El programa implementa un contador bidireccional que aumenta de 5 a 10 y luego disminuye de vuelta a 5, repitiendo el ciclo de manera indefinida. Para ello se utilizan dos variables auxiliares, \texttt{contador} (inicializado en 5) y \texttt{direccion} (inicializado en 1, que indica incremento), y únicamente las instrucciones permitidas, \texttt{MOV}, \texttt{ADD}, \texttt{SUB}, \texttt{CMP} y saltos condicionales.
+
+Conceptualmente, el algoritmo es una máquina de dos estados gobernada por la variable \texttt{direccion}, mientras el contador no toca un límite, permanece en el estado actual sumando o restando; al alcanzar el extremo, invierte la dirección. La Figura~\ref{fig:contador_estados} ilustra esta lógica.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=4.4cm]
+    \node[flujoInicio, minimum width=3.0cm, minimum height=1.1cm] (subir)
+        {\textbf{SUBIR}\\\texttt{direccion = 1}};
+    \node[flujoInicio, minimum width=3.0cm, minimum height=1.1cm, right=of subir] (bajar)
+        {\textbf{BAJAR}\\\texttt{direccion = 0}};
+
+    % Transiciones entre estados al alcanzar cada limite
+    \draw[flecha] (subir) to[bend left=22]
+        node[etiqueta, above, align=center] {contador = 10\\\texttt{MOV direccion,0}} (bajar);
+    \draw[flecha] (bajar) to[bend left=22]
+        node[etiqueta, below, align=center] {contador = 5\\\texttt{MOV direccion,1}} (subir);
+
+    % Lazos propios: se permanece en el estado mientras no se toca el limite
+    \draw[flecha] (subir) to[out=120,in=60,looseness=5]
+        node[etiqueta, above] {contador $<$ 10: \texttt{ADD +1}} (subir);
+    \draw[flecha] (bajar) to[out=120,in=60,looseness=5]
+        node[etiqueta, above] {contador $>$ 5: \texttt{SUB -1}} (bajar);
+
+    % Entrada al estado inicial
+    \node[etiqueta, align=center, left=0.8cm of subir, text=VerdeUABC] (ini) {inicio\\\texttt{contador=5}};
+    \draw[flecha, VerdeUABC] (ini) -- (subir);
+\end{tikzpicture}
+\caption{Máquina de dos estados del contador oscilante: cada estado itera con su operación aritmética y conmuta al opuesto cuando \texttt{contador} alcanza el límite correspondiente.}
+\label{fig:contador_estados}
+\end{figure}
+
+\begin{lstlisting}[style=assemblyStyle,
+  caption={Código del Ejercicio~3: contador oscilante (5, 10).},
+  label={lst:ejercicio3}]
+.data
+    contador  WORD 5     
+    direccion WORD 1     
+    ultimo    WORD 0     
+
+.code
+ciclo:
+    CMP  direccion, 1    
+    JNE  bajar           
+
+subir:
+    ADD  contador, 1     
+    CMP  contador, 10    
+    JNE  mostrar         
+    MOV  direccion, 0    
+    JMP  mostrar
+
+bajar:
+    SUB  contador, 1     
+    CMP  contador, 5     
+    JNE  mostrar         
+    MOV  direccion, 1    
+
+mostrar:
+    MOV  AX, contador    
+    MOV  ultimo, AX      
+    JMP  ciclo           
+\end{lstlisting}
+
+\subsubsection*{Análisis del flujo de control}
+
+\begin{instruccionbox}
+\textbf{Instrucciones clave}
+\begin{lstlisting}
+    CMP direccion, 1
+    JNE bajar
+\end{lstlisting}
+\textbf{Descripción}: Esta comparación es el selector principal del ciclo. Si \texttt{direccion = 1}, la bandera \texttt{ZF} se activa y \texttt{JNE} \emph{no} salta, continuando hacia la etiqueta \texttt{subir}. Si \texttt{direccion = 0}, \texttt{ZF = 0} y \texttt{JNE} salta a \texttt{bajar}.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio3\_selector\_direccion\_zf\_antes.png}{fotos/ejercicio3\_selector\_direccion\_zf\_despues.png}
+\caption{Selector de dirección del contador: \texttt{CMP direccion,1} y la decisión de \texttt{JNE} según \texttt{ZF}, antes y después.}
+\label{fig:ej3_selector_direccion}
+\end{figure}
+
+\begin{instruccionbox}
+\textbf{Instrucciones clave}
+\begin{lstlisting}
+    ADD contador, 1
+    CMP contador, 10
+    JNE mostrar
+    MOV direccion, 0    ; invertir al llegar al limite
+\end{lstlisting}
+\textbf{Descripción}: Tras incrementar el contador, se compara con el límite superior (10). Si aún no se alcanzó, \texttt{ZF = 0} y \texttt{JNE} salta directamente a \texttt{mostrar}. Si el contador alcanzó 10, \texttt{ZF = 1} y la ejecución cae en la siguiente instrucción, que cambia la dirección a 0 (bajar).
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio3\_limite\_superior\_10\_antes.png}{fotos/ejercicio3\_limite\_superior\_10\_despues.png}
+\caption{Contador al alcanzar el límite superior (10): cambio de \texttt{ZF} y actualización de \texttt{direccion} a 0, antes y después.}
+\label{fig:ej3_limite_superior}
+\end{figure}
+
+La lógica simétrica se aplica en la rama \texttt{bajar}, tras decrementar, si el contador llega a 5 se invierte la dirección a 1 (subir) para reiniciar el ciclo ascendente.
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio3\_limite\_inferior\_5\_antes.png}{fotos/ejercicio3\_limite\_inferior\_5\_despues.png}
+\caption{Contador al alcanzar el límite inferior (5): cambio de \texttt{ZF} y actualización de \texttt{direccion} a 1, antes y después.}
+\label{fig:ej3_limite_inferior}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Traza de la secuencia de valores de \texttt{contador} en los primeros dos ciclos.}
+\label{tab:traza_contador}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Iteración} & \textbf{contador} & \textbf{direccion} & \textbf{Acción} \\
+\midrule
+0  & 5  & 1 & Inicio \\
+1  & 6  & 1 & Subir \\
+2  & 7  & 1 & Subir \\
+3  & 8  & 1 & Subir \\
+4  & 9  & 1 & Subir \\
+5  & 10 & 0 & Llegó a 10, cambia a bajar \\
+6  & 9  & 0 & Bajar \\
+7  & 8  & 0 & Bajar \\
+8  & 7  & 0 & Bajar \\
+9  & 6  & 0 & Bajar \\
+10 & 5  & 1 & Llegó a 5, cambia a subir \\
+\vdots & \vdots & \vdots & \textit{(ciclo indefinido)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Ejercicio 4. Determinación de paridad: par o impar}
+
+El programa determina si el número almacenado en la variable \texttt{numero} (inicializada en 8 para este ejemplo) es par o impar. El mecanismo empleado es la división entera entre 2 con la instrucción \texttt{DIV}, el residuo obtenido en \texttt{DX} es el discriminante de paridad, ya que cualquier número par produce residuo 0 al dividirse entre 2, y cualquier número impar produce residuo 1.
+
+\begin{lstlisting}[style=assemblyStyle,
+  caption={Código del Ejercicio~4: clasificación par/impar.},
+  label={lst:ejercicio4}]
+.data
+    numero    WORD 8     
+    resultado WORD 0     
+
+.code
+    MOV AX, numero       
+    SUB DX, DX           
+    MOV BX, 2
+    DIV BX               
+    CMP DX, 0            
+    JNE impar            
+
+par:
+    MOV CX, 1            
+    JMP guardar
+
+impar:
+    MOV CX, 0            
+
+guardar:
+    MOV resultado, CX    
+\end{lstlisting}
+
+\subsubsection*{Análisis del algoritmo}
+
+\begin{instruccionbox}
+\textbf{Instrucciones clave}
+\begin{lstlisting}
+    SUB DX, DX
+    MOV BX, 2
+    DIV BX
+\end{lstlisting}
+\textbf{Descripción}: La instrucción \texttt{DIV BX} realiza la división sin signo del par \texttt{DX:AX} entre \texttt{BX}. Es esencial limpiar \texttt{DX} antes de la operación; de lo contrario, el dividendo sería un número de 32 bits con basura en la parte alta, lo que provocaría un desbordamiento de cociente (\textit{divide overflow}) si \texttt{DX} contiene cualquier valor diferente de cero.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio4\_div\_registros\_antes.png}{fotos/ejercicio4\_div\_registros\_despues.png}
+\caption{Registros durante la división: preparación de \texttt{DX:AX}, divisor en \texttt{BX} y resultado en \texttt{AX}/\texttt{DX}, antes y después de \texttt{DIV}.}
+\label{fig:ej4_div_registros}
+\end{figure}
+
+\begin{instruccionbox}
+\textbf{Instrucciones clave}
+\begin{lstlisting}
+    CMP DX, 0
+    JNE impar
+par:
+    MOV CX, 1
+    JMP guardar
+impar:
+    MOV CX, 0
+guardar:
+    MOV resultado, CX
+\end{lstlisting}
+\textbf{Descripción}: Tras la división, \texttt{DX} contiene el residuo (0 o 1). La comparación con 0 activa \texttt{ZF} si el número es par. \texttt{JNE} salta a \texttt{impar} si \texttt{ZF = 0} (residuo $\neq$ 0). Si el número es par, la ejecución cae en \texttt{par}, carga 1 en \texttt{CX} y salta incondicionalmente a \texttt{guardar} con \texttt{JMP} para evitar ejecutar el bloque \texttt{impar}.
+\end{instruccionbox}
+
+\begin{figure}[H]
+\centering
+\zonacaptura{fotos/ejercicio4\_cmp\_dx\_zf\_salto\_antes.png}{fotos/ejercicio4\_cmp\_dx\_zf\_salto\_despues.png}
+\caption{Decisión \texttt{par/impar}: estado de \texttt{ZF} tras \texttt{CMP DX,0} y la ruta tomada por \texttt{JNE}, antes y después.}
+\label{fig:ej4_cmp_zf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \zonacaptura{fotos/ejercicio4\_par\_antes.png}{fotos/ejercicio4\_par\_despues.png}
+    \caption{Estado de los registros en el depurador tras ejecutar el bloque \texttt{par} para \texttt{numero = 8}.}
+    \label{fig:ejercicio4_par}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Estado de los registros tras \texttt{DIV BX} para \texttt{numero = 8}.}
+\begin{tabular}{ccccl}
+\toprule
+\textbf{AX (entrada)} & \textbf{BX (divisor)} & \textbf{AX (cociente)} & \textbf{DX (residuo)} & \textbf{Clasificación} \\
+\midrule
+\texttt{0008h} (8) & \texttt{0002h} (2) & \texttt{0004h} (4) & \texttt{0000h} (0) & Par $\Rightarrow$ resultado = 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Para validar el comportamiento con un número impar, se cambia la variable \texttt{numero} a 7 y se repite la ejecución.
+
+\begin{figure}[H]
+    \centering
+    \zonacaptura{fotos/ejercicio4\_impar\_antes.png}{fotos/ejercicio4\_impar\_despues.png}
+    \caption{Estado de los registros en el depurador tras ejecutar el bloque \texttt{impar} para \texttt{numero = 7}.}
+    \label{fig:ejercicio4_impar}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Estado de los registros tras \texttt{DIV BX} para \texttt{numero = 7}.}
+\begin{tabular}{ccccl}
+\toprule
+\textbf{AX (entrada)} & \textbf{BX (divisor)} & \textbf{AX (cociente)} & \textbf{DX (residuo)} & \textbf{Clasificación} \\
+\midrule
+\texttt{0007h} (7) & \texttt{0002h} (2) & \texttt{0003h} (3) & \texttt{0001h} (1) & Impar $\Rightarrow$ resultado = 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Resumen de la verificación par/impar para ambos casos de prueba.}
+\begin{tabular}{ccccc}
+\toprule
+\textbf{numero} & \textbf{DX (residuo)} & \textbf{ZF (ZR/NZ)} & \textbf{Salto tomado} & \textbf{resultado} \\
+\midrule
+8 (par)   & 0 & \texttt{ZR} (ZF=1) & Cae en \texttt{par}    & 1 \\
+7 (impar) & 1 & \texttt{NZ} (ZF=0) & Salta a \texttt{impar} & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+% ════════════════════════════════════════════════════════════════════════════
+\section{Conclusiones}
+Esta práctica permitió comprender el mecanismo de control de flujo, cerrando el ciclo entre las operaciones aritméticas de la práctica anterior y su aplicación en decisiones condicionales. El uso de las banderas del registro \texttt{EFLAGS} constituye un canal de comunicación entre el hardware y el programador, las de estado capturan características cualitativas del resultado de cada instrucción, la de control modifica el comportamiento de las operaciones de cadena, y las de sistema permiten al sistema operativo gestionar el modo de ejecución del procesador, las interrupciones y los mecanismos de depuración.
+
+La verificación sistemática de los dieciséis grupos de saltos condicionales fue suficiente para entenderlas. Aplicar \texttt{JL} donde debería usarse \texttt{JB}, o viceversa, produciría un comportamiento incorrecto en presencia de números negativos o valores grandes sin signo; esta es una fuente habitual de \textit{bugs} difíciles de diagnosticar.
+
+Los Ejercicios 3 y 4 utilizaron estructuras de control complejas como los bucles con condición de cambio y la bifurcación por resultado aritmético, que son perfectamente implementables con las instrucciones más básicas del conjunto de instrucciones MASMx86. La ausencia de estructuras de alto nivel, lejos de ser una limitación, pues exhibe con transparencia el mecanismo subyacente que los compiladores modernos generan automáticamente, una comparación de banderas seguida de un salto condicional.
+
+\nocite{*}
+\printbibliography[title={Referencias}]
+\addcontentsline{toc}{section}{Referencias}
+
+\appendix
+\section{Repositorio de código}
+El código \textbf{Ensamblador} completo de los ejercicios realizados durante esta práctica se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/ApoloEM/OyAdeC/tree/main/practica5}
+\end{center}
+
+\end{document}
