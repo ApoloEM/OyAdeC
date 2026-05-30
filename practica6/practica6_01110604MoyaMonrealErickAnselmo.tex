@@ -1,0 +1,702 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\setlength{\parskip}{1\baselineskip}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{referencias.bib}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\usetikzlibrary{calc, positioning, shapes.geometric, arrows.meta, decorations.pathreplacing}
+\definecolor{VerdeUABC}{RGB}{75, 83, 32}
+\definecolor{VerdeClaro}{RGB}{225, 232, 200}
+\definecolor{AzulPaso}{RGB}{210, 224, 240}
+\definecolor{RojoSalto}{RGB}{176, 0, 32}
+
+% --- Estilos compartidos para los diagramas de flujo del marco teórico ---
+\tikzset{
+    flujoInicio/.style={
+        rounded corners=10pt, draw=VerdeUABC!85, line width=0.8pt,
+        fill=VerdeClaro, inner sep=5pt, font=\footnotesize\ttfamily,
+        align=center, minimum width=2.3cm, minimum height=0.8cm},
+    flujoProceso/.style={
+        draw=VerdeUABC!85, line width=0.8pt, fill=AzulPaso,
+        inner sep=5pt, font=\footnotesize\ttfamily, align=center,
+        minimum width=2.6cm, minimum height=0.85cm},
+    flujoDecision/.style={
+        diamond, aspect=2, draw=VerdeUABC!85, line width=0.8pt,
+        fill=white, inner sep=1pt, font=\scriptsize\ttfamily, align=center,
+        minimum width=2.6cm},
+    flujoFin/.style={
+        rounded corners=10pt, draw=RojoSalto!70, line width=0.8pt,
+        fill=RojoSalto!8, inner sep=5pt, font=\footnotesize\ttfamily,
+        align=center, minimum width=2.0cm, minimum height=0.8cm},
+    flecha/.style={-{Stealth[length=2.2mm]}, line width=0.8pt},
+    etiqueta/.style={font=\scriptsize\sffamily, inner sep=1.5pt},
+    celdaMem/.style={
+        draw=VerdeUABC!80, line width=0.7pt, minimum width=1.1cm,
+        minimum height=1.1cm, font=\small\ttfamily, fill=white}
+}
+\definecolor{verdeData}{rgb}{0,0.5,0}
+\definecolor{rowLight}{RGB}{245, 246, 240}
+
+\newcolumntype{R}{>{\centering\arraybackslash}p{2.5cm}}
+\newcolumntype{V}{>{\centering\arraybackslash}p{3cm}}
+
+\sisetup{
+detect-all,
+table-number-alignment=center
+}
+
+\newtcolorbox{instruccionbox}{
+colback=gray!5,
+colframe=black,
+title=Análisis de instrucción
+}
+
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{hexcolor}{RGB}{0, 102, 204}
+\definecolor{bincolor}{RGB}{153, 0, 153}
+
+\lstdefinestyle{baseStyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    numberstyle=\tiny\color{gray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    captionpos=b,
+    numbers=left,
+    numbersep=8pt,
+    tabsize=4,
+    showstringspaces=false
+}
+
+\lstdefinestyle{assemblyStyle}{
+    style=baseStyle,
+    language=[x86masm]Assembler,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={section, global, extern, db, dw, dd, dq, times, equ, lea, movzx, movsx, BYTE, DWORD, PTR, OFFSET, LENGTHOF, PROC, ENDP},
+    morecomment=[l]{;},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstdefinestyle{cStyle}{
+    style=baseStyle,
+    language=C,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={__asm, typedef, struct},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstset{style=assemblyStyle}
+
+\newcommand{\inst}[1]{\texttt{\textbf{#1}}}
+\newcommand{\reg}[1]{\texttt{\textcolor{blue}{#1}}}
+\newcommand{\hex}[1]{\texttt{\textcolor{hexcolor}{#1}}}
+\newcommand{\bin}[1]{\texttt{\textcolor{bincolor}{#1}}}
+\newcommand{\instrformat}[2]{\texttt{\textbf{#1} #2}}
+
+% Marcador para capturas pendientes: muestra un recuadro gris.
+% Para insertar la imagen real, reemplazar por:
+%   \fbox{\includegraphics[width=...]{fotos/nombre.png}}
+\newcommand{\imagePlaceholder}[3]{%
+    \setlength{\fboxsep}{0pt}%
+    \fbox{\begin{minipage}[c][#2][c]{#1}\centering\color{gray}\itshape\small #3\end{minipage}}%
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize OyAdeC}
+\chead{\footnotesize Práctica \numeroPractica: \tituloPractica}
+\rhead{\footnotesize 1110604}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{VerdeUABC}}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection.}{1em}{}
+
+\newcommand{\tituloPractica}{Estructuras de Control y Ciclos en Ensamblador}
+\newcommand{\numeroPractica}{06}
+\newcommand{\profesor}{Ing. Félix Arredondo Santamaría}
+\newcommand{\fechaEntrega}{17/ABRIL/2026}
+
+\newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
+
+\newcommand{\MarcoPagina}{
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1.2pt, color=VerdeUABC!90]
+            ($(current page.north west) + (0.7cm,-0.7cm)$) rectangle ($(current page.south east) + (-0.7cm,0.7cm)$);
+        \draw [line width=0.6pt, color=VerdeUABC!60]
+            ($(current page.north west) + (0.85cm,-0.85cm)$) rectangle ($(current page.south east) + (-0.85cm,0.85cm)$);
+    \end{tikzpicture}
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[width=4.5cm]{../recursos/escudo-actualizado-2022.png}
+        \hspace{1cm}
+        \includegraphics[width=5.5cm]{../recursos/1593484343817.jpg}
+        \vspace{0.5cm}
+
+        \LARGE \textbf{Universidad Autónoma de Baja California}\\
+        \Large Facultad de Ingeniería Mexicali\\
+        \Large Ingeniería en Computación\\
+        \vspace{0.5cm}
+
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+        \large \textbf{Reporte de Práctica \numeroPractica}\\
+        \vspace{0.1cm}
+        {\Huge {\tituloPractica}}\\
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+        \vfill
+        Organización y Arquitectura de Computadoras\\
+        \profesor \\
+        \vspace{1.3cm}
+        \integranteA \\
+        \vspace{1.3cm}
+        \textbf{Fecha de entrega} \\ \fechaEntrega \\
+        \vfill
+        {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
+        Mexicali, Baja California\\ \today
+    \end{center}
+\end{titlepage}
+
+\newpage
+\AddToShipoutPictureBG{\MarcoPagina}
+\begingroup
+\small
+\setlength{\parskip}{11pt}
+\tableofcontents
+\endgroup
+
+\newpage
+\section{Introducción}
+El flujo de ejecución de un programa rara vez avanza en línea recta. La inmensa mayoría de los algoritmos repiten un conjunto de instrucciones un número determinado de veces o mientras se cumpla una condición, y es precisamente esa capacidad de iterar la que permite procesar arreglos, acumular sumas, calcular productos o reorganizar datos. En un lenguaje de alto nivel estas repeticiones se expresan con construcciones como \texttt{for}, \texttt{while} o \texttt{do-while}, que el compilador traduce silenciosamente a saltos sobre el contador de programa.
+
+En lenguaje ensamblador, en cambio, no existen tales palabras reservadas, el programador debe construir cada ciclo a partir de etiquetas, comparaciones y saltos. En esta práctica se exploran los mecanismos de control de flujo de \texttt{MASM x86}, empezando por la instrucción dedicada \texttt{LOOP}, que combina en una sola operación el decremento de un contador y el salto condicional, para después reproducir manualmente con \texttt{CMP} y saltos las tres estructuras de repetición clásicas. Con estas herramientas se resuelven cuatro problemas concretos, el cálculo de un factorial, el doblado iterativo de un valor con salida temprana, el recorrido de un arreglo cuya longitud se obtiene automáticamente y el ordenamiento ascendente de una lista de números.
+
+\section{Problemática y Justificación}
+A diferencia de un lenguaje de alto nivel, donde una sola línea \texttt{for(i=0; i<n; i++)} encapsula la inicialización, la condición y el incremento de un ciclo, el ensamblador obliga a descomponer esa misma idea en sus partes elementales, una etiqueta que marca el inicio del cuerpo, una comparación que decide si continuar, y un salto que regresa el control o lo transfiere fuera del ciclo \cite{irvine2020assembly}.
+
+La instrucción \texttt{LOOP} simplifica el caso del ciclo contado porque usa el registro \texttt{ECX} como contador implícito, pero se vuelve insuficiente cuando la repetición depende de una condición arbitraria, situación en la que hay que recurrir a \texttt{CMP} y a los saltos condicionales (\texttt{JG}, \texttt{JE}, \texttt{JGE}, \texttt{JNZ}). Problemas como el ordenamiento exigen ciclos anidados y el intercambio cuidadoso de elementos en memoria, lo que pone a prueba el manejo de punteros y el respeto del contador externo cuando el interno también utiliza \texttt{ECX}.
+
+\section{Objetivos de la práctica}
+\textbf{Objetivo General}
+
+Comprender e implementar en lenguaje ensamblador \texttt{MASM x86} las estructuras de control iterativas, empleando tanto la instrucción \texttt{LOOP} como la construcción manual de ciclos mediante comparaciones y saltos condicionales, para resolver problemas de cálculo, recorrido de arreglos y ordenamiento.
+
+\textbf{Objetivos Específicos}
+\begin{itemize}
+    \item \textbf{Comprobar} el funcionamiento de la instrucción \texttt{LOOP} con el registro \texttt{ECX} como contador implícito en un ciclo de iteraciones fijas.
+    \item \textbf{Combinar} un salto condicional dentro de un ciclo para abandonarlo de forma temprana cuando un valor supera una referencia, aun cuando el contador no se haya agotado.
+    \item \textbf{Reproducir} con \texttt{CMP} y saltos las estructuras de control \texttt{for}, \texttt{while} y \texttt{do-while} de un lenguaje de alto nivel.
+    \item \textbf{Aplicar} la teoría de ciclos al cálculo del factorial de 10 mediante multiplicaciones sucesivas.
+    \item \textbf{Recorrer} un arreglo asignando cada elemento al registro \texttt{EAX}, obteniendo su longitud automáticamente con el operador \texttt{LENGTHOF} en lugar de fijarla a mano.
+    \item \textbf{Implementar} el ordenamiento ascendente de un arreglo de enteros utilizando ciclos anidados y el intercambio de elementos en memoria.
+\end{itemize}
+
+\section{Marco Teórico}
+\subsection{Control de Flujo en Lenguaje Ensamblador}
+El procesador ejecuta instrucciones de manera secuencial, avanzando el registro contador de programa (\texttt{EIP}) tras cada operación. Para alterar ese orden lineal y construir repeticiones o decisiones se emplean las instrucciones de salto, que modifican \texttt{EIP} para que apunte a una etiqueta distinta de la siguiente instrucción \cite{irvine2020assembly}. Un salto puede ser \textbf{incondicional} (\texttt{JMP}), que transfiere el control sin condición alguna, o \textbf{condicional} (\texttt{JE}, \texttt{JG}, \texttt{JGE}, \texttt{JLE}, \texttt{JNZ}, entre otros), que solo se efectúa si las banderas del registro de estado, fijadas normalmente por una instrucción \texttt{CMP} previa, cumplen cierta condición. Con estos dos ingredientes, etiquetas y saltos, se puede reconstruir cualquier estructura de control de un lenguaje de alto nivel.
+
+\subsection{La Instrucción \texttt{LOOP} y el Contador \texttt{ECX}}
+\texttt{LOOP} es una instrucción especializada en ciclos contados. Cada vez que se ejecuta realiza dos acciones de manera atómica: decrementa el registro \texttt{ECX} en una unidad y, si el resultado es distinto de cero, salta a la etiqueta indicada; cuando \texttt{ECX} llega a cero el salto no se realiza y la ejecución continúa con la instrucción siguiente \cite{irvine2011assembly}. De este modo, basta con cargar en \texttt{ECX} el número de repeticiones deseado antes de entrar al ciclo. Esta comodidad tiene una consecuencia, \texttt{ECX} queda reservado como contador, por lo que si el cuerpo del ciclo necesita usarlo para otra cosa, su valor debe preservarse en la pila con \texttt{PUSH} y \texttt{POP}, situación que se presenta de manera natural en los ciclos anidados. La Figura~\ref{fig:loop_ecx} ilustra el mecanismo interno de \texttt{LOOP}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.95cm]
+    % Nodos del flujo: el cuerpo se ejecuta y LOOP decide si repetir
+    \node[flujoInicio] (init) {MOV ECX, n};
+    \node[flujoProceso, below=of init] (body) {Cuerpo del ciclo};
+    \node[flujoDecision, below=1.05cm of body] (dec) {LOOP etiqueta\\ECX $\leftarrow$ ECX$-1$\\¿ECX $\neq$ 0?};
+    \node[flujoFin, below=1.05cm of dec] (end) {Continúa};
+
+    % Conexiones verticales del flujo principal
+    \draw[flecha] (init) -- (body);
+    \draw[flecha] (body) -- (dec);
+    \draw[flecha] (dec) -- node[etiqueta, right] {no (ECX = 0)} (end);
+
+    % Retorno del ciclo: rama "sí" que vuelve al cuerpo por la izquierda
+    \draw[flecha] (dec.west) -| ($(body.west)+(-1.3cm,0)$)
+        node[etiqueta, midway, above] {sí (ECX $\neq$ 0)} -- (body.west);
+\end{tikzpicture}
+\caption{Mecanismo de la instrucción \texttt{LOOP}: decrementa \texttt{ECX} y, mientras no sea cero, retorna al cuerpo del ciclo.}
+\label{fig:loop_ecx}
+\end{figure}
+
+\subsection{Equivalencia con \texttt{for}, \texttt{while} y \texttt{do-while}}
+Las tres estructuras de repetición de los lenguajes de alto nivel se distinguen por el momento en que evalúan su condición. El ciclo \texttt{for} y el \texttt{while} la comprueban \textbf{antes} de ejecutar el cuerpo (ciclos preprobados), de modo que pueden no ejecutarse ni una sola vez; en ensamblador se traducen colocando un \texttt{CMP} seguido de un salto condicional al inicio, y un \texttt{JMP} al final que regresa a esa comprobación \cite{patterson2016computer}. El \texttt{do-while}, en cambio, evalúa la condición \textbf{al final} (ciclo posprobado), garantizando al menos una ejecución del cuerpo; su traducción coloca la comparación y el salto condicional al final del bloque. Entender esta diferencia es clave para elegir la plantilla correcta al codificar un algoritmo. La Figura~\ref{fig:pre_pos} contrasta ambos esquemas.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+    % CICLO PREPROBADO: la condicion encabeza el bloque (for / while)
+    \node[flujoInicio] (i) at (0,0) {Inicio};
+    \node[flujoDecision] (d) at (0,-1.9) {¿condición?};
+    \node[flujoProceso] (b) at (0,-4.0) {Cuerpo};
+    \node[flujoFin] (f) at (3.0,-1.9) {Fin};
+
+    \draw[flecha] (i) -- (d);
+    \draw[flecha] (d) -- node[etiqueta, right] {verdadero} (b);
+    \draw[flecha] (d) -- node[etiqueta, above] {falso} (f);
+    % El cuerpo regresa a reevaluar la condicion (rama de repeticion)
+    \draw[flecha] (b.west) -| ($(d.west)+(-1.5cm,0)$) -- (d.west);
+\end{tikzpicture}
+\caption{Preprobado (\texttt{for} / \texttt{while}): puede no ejecutar el cuerpo.}
+\label{fig:preprobado}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+    % CICLO POSPROBADO: el cuerpo se ejecuta antes de evaluar (do-while)
+    \node[flujoInicio] (i) at (0,0) {Inicio};
+    \node[flujoProceso] (b) at (0,-1.9) {Cuerpo};
+    \node[flujoDecision] (d) at (0,-4.0) {¿condición?};
+    \node[flujoFin] (f) at (3.0,-4.0) {Fin};
+
+    \draw[flecha] (i) -- (b);
+    \draw[flecha] (b) -- (d);
+    \draw[flecha] (d) -- node[etiqueta, above] {falso} (f);
+    % La rama "verdadero" repite el cuerpo sin volver a evaluar antes
+    \draw[flecha] (d.west) -| ($(b.west)+(-1.5cm,0)$)
+        node[etiqueta, midway, left] {verdadero} -- (b.west);
+\end{tikzpicture}
+\caption{Posprobado (\texttt{do-while}): ejecuta el cuerpo al menos una vez.}
+\label{fig:posprobado}
+\end{subfigure}
+\caption{Diferencia estructural entre los ciclos preprobados y el posprobado según el momento en que evalúan la condición.}
+\label{fig:pre_pos}
+\end{figure}
+
+\subsection{Direccionamiento de Arreglos y el Operador \texttt{LENGTHOF}}
+Un arreglo se almacena como una secuencia contigua de elementos en memoria. Para recorrerlo se utiliza el direccionamiento indexado, en el que la dirección de un elemento se calcula sumando a la dirección base (\texttt{OFFSET} del arreglo) un desplazamiento proporcional al índice \cite{stallings2019computer}. Un aspecto crítico es no codificar la longitud del arreglo de forma manual, pues cualquier cambio en la declaración la dejaría desactualizada. El operador \texttt{LENGTHOF} resuelve este problema calculando en tiempo de ensamblado el número de elementos de un arreglo a partir de su declaración, de manera que el ciclo siempre itera el número exacto de veces sin importar cuántos elementos se agreguen o quiten. La Figura~\ref{fig:arreglo} muestra la disposición en memoria de la cadena \texttt{"HOLA"} y el cálculo de su dirección.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+    % Cada celda es un byte de la cadena "HOLA" en memoria contigua
+    \foreach \c [count=\i from 0] in {H,O,L,A} {
+        \node[celdaMem] (cell\i) at (\i*1.2,0) {\c};
+        % indice del elemento bajo cada celda
+        \node[font=\scriptsize\sffamily\itshape, below=1pt of cell\i] {índice \i};
+    }
+
+    % Direccion base: OFFSET unaCadena apunta a la primera celda (arriba-izq)
+    \node[etiqueta, align=center, text=VerdeUABC] (base)
+        at (-0.4,2.0) {\texttt{OFFSET unaCadena}\\(dirección base)};
+    \draw[flecha, VerdeUABC] (base.south) to[out=-90,in=120] (cell0.north west);
+
+    % Acceso indexado de ejemplo: [unaCadena + EBX] con EBX = 2 (arriba-der)
+    \node[etiqueta, align=center, text=RojoSalto] (idx)
+        at (3.0,2.0) {\texttt{[unaCadena + EBX]}\\con \texttt{EBX = 2}};
+    \draw[flecha, RojoSalto] (idx.south) to[out=-90,in=70] (cell2.north);
+
+    % Llave que abarca el arreglo completo -> LENGTHOF = 4
+    \draw[decorate, decoration={brace, amplitude=6pt, mirror},
+          line width=0.7pt, VerdeUABC!85]
+        ($(cell0.south west)+(0,-0.7)$) -- ($(cell3.south east)+(0,-0.7)$)
+        node[midway, below=8pt, font=\footnotesize\ttfamily, text=black]
+        {LENGTHOF unaCadena = 4};
+\end{tikzpicture}
+\caption{Disposición en memoria de la cadena \texttt{"HOLA"}: la dirección de cada byte se obtiene sumando el índice a la base, y \texttt{LENGTHOF} entrega el número de elementos.}
+\label{fig:arreglo}
+\end{figure}
+
+\subsection{Algoritmos de Ordenamiento con Ciclos Anidados}
+Ordenar un arreglo es un problema clásico que requiere comparar y reorganizar sus elementos. El método de la burbuja (\textit{bubble sort}) recorre repetidamente la lista comparando pares de elementos adyacentes e intercambiándolos cuando están en el orden incorrecto, de forma que en cada pasada el mayor elemento ``flota'' hacia el final \cite{patterson2016computer}. Su implementación en ensamblador necesita dos ciclos anidados, uno externo que controla el número de pasadas y uno interno que realiza las comparaciones e intercambios. Como ambos usarían el contador \texttt{ECX}, el del ciclo externo se preserva en la pila mientras el interno trabaja, ilustrando la importancia de gestionar correctamente los registros compartidos. La Figura~\ref{fig:burbuja} muestra una comparación e intercambio del primer par adyacente.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+    % --- Fila "antes": arreglo desordenado, primer par a comparar ---
+    \foreach \v [count=\i from 0] in {100,5,2,4,1,3} {
+        \node[celdaMem, minimum width=1.0cm] (a\i) at (\i*1.05,0) {\v};
+    }
+    % Resaltado del par adyacente que se compara (ESI y ESI+4)
+    \node[celdaMem, minimum width=1.0cm, fill=VerdeClaro] at (a0) {100};
+    \node[celdaMem, minimum width=1.0cm, fill=VerdeClaro] at (a1) {5};
+    \node[etiqueta, below=2pt of a0, text=VerdeUABC] {\texttt{[ESI]}};
+    \node[etiqueta, below=2pt of a1, text=VerdeUABC] {\texttt{[ESI+4]}};
+    % Comparacion: 100 > 5 -> procede el intercambio
+    \draw[{Stealth[length=2mm]}-{Stealth[length=2mm]}, RojoSalto, line width=0.8pt]
+        (a0.north) to[out=60,in=120]
+        node[above, font=\scriptsize\sffamily, text=black]
+        {\texttt{CMP}: $100 > 5 \Rightarrow$ intercambiar} (a1.north);
+    \node[etiqueta, left=0.3cm of a0] {Antes:};
+
+    % --- Fila "despues": el par quedo ordenado tras el swap ---
+    \foreach \v [count=\i from 0] in {5,100,2,4,1,3} {
+        \node[celdaMem, minimum width=1.0cm] (b\i) at (\i*1.05,-2.4) {\v};
+    }
+    \node[celdaMem, minimum width=1.0cm, fill=VerdeClaro] at (b0) {5};
+    \node[celdaMem, minimum width=1.0cm, fill=VerdeClaro] at (b1) {100};
+    \node[etiqueta, left=0.3cm of b0] {Después:};
+
+    % Flecha que une el estado previo con el posterior
+    \draw[flecha, gray] ($(a0.south west)+(-0.1,-0.55)$) -- ($(b0.north west)+(-0.1,0.05)$);
+\end{tikzpicture}
+\caption{Una comparación del método de la burbuja: como \texttt{[ESI]} $>$ \texttt{[ESI+4]}, los dos elementos adyacentes se intercambian en memoria.}
+\label{fig:burbuja}
+\end{figure}
+
+\section{Procedimiento}
+La práctica se organizó como una serie de ejercicios, cada uno enfocado en un mecanismo de control de flujo distinto y apoyándose en lo aprendido en el anterior.
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Ejercicio 1 --- \texttt{LOOP} básico.} Se construyó un ciclo de cinco iteraciones con \texttt{LOOP} que incrementa un registro en cada vuelta, comprobando el funcionamiento elemental del contador \texttt{ECX}.
+
+    \item \textbf{Ejercicio 2 --- Salto condicional dentro de un ciclo.} Dentro de un ciclo de cinco iteraciones se dobla el valor de un registro en cada vuelta y se sale anticipadamente con un salto condicional cuando supera un valor de referencia.
+
+    \item \textbf{Ejercicio 3 --- \texttt{for}, \texttt{while} y \texttt{do-while}.} Se reprodujeron con \texttt{CMP} y saltos las tres estructuras de repetición clásicas de un lenguaje de alto nivel.
+
+    \item \textbf{Ejercicio 4 --- Factorial de 10.} Se calculó el factorial de 10 mediante un ciclo de multiplicaciones sucesivas controlado por \texttt{LOOP}.
+
+    \item \textbf{Ejercicio 5 --- Resumen del capítulo 4.} Se elaboró un resumen del capítulo 4 del libro \textit{Assembly Language for x86 Processors} de Kip Irvine.
+
+    \item \textbf{Ejercicio 6 --- Recorrido de un arreglo con \texttt{LOOP}.} Se recorrió una cadena asignando cada carácter a \texttt{EAX}, obteniendo el número de iteraciones con \texttt{LENGTHOF}.
+
+    \item \textbf{Ejercicio 7 --- Ordenamiento ascendente.} Se ordenó un arreglo de enteros de menor a mayor mediante el método de la burbuja con ciclos anidados.
+\end{enumerate}
+
+\section{Resultados con pruebas}
+\subsection{Ejercicio 1: \texttt{LOOP} básico}
+El primer ejercicio comprueba el funcionamiento elemental de la instrucción \texttt{LOOP}. Se carga en \texttt{ECX} el número de iteraciones (5) y en \texttt{EAX} un acumulador en cero; en cada vuelta del ciclo se incrementa \texttt{EAX} y \texttt{LOOP} se encarga de decrementar \texttt{ECX} y repetir hasta agotarlo. El Código~\ref{lst:ej1} muestra la implementación.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Ciclo de cinco iteraciones con \texttt{LOOP} que incrementa un registro.}, label={lst:ej1}]
+    MOV ECX, 5             ; numero de iteraciones
+    MOV EAX, 0             ; acumulador
+
+    SALTO1:
+        INC EAX            ; EAX = EAX + 1
+        LOOP SALTO1        ; ECX-- ; si ECX != 0 -> SALTO1
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    INC EAX
+    LOOP SALTO1
+\end{lstlisting}
+\textbf{Descripción}
+Incrementa el acumulador y delega en \texttt{LOOP} el control del ciclo: decrementa \texttt{ECX} y salta mientras no llegue a cero.
+\end{instruccionbox}
+
+El uso de \texttt{LOOP} radica en que condensa en una sola instrucción lo que de otro modo requeriría un \texttt{DEC ECX} seguido de un \texttt{JNZ}. Al iniciar con \texttt{ECX = 5}, el cuerpo se ejecuta cinco veces y \texttt{EAX} termina valiendo \hex{00000005}, mientras que \texttt{ECX} queda en \hex{00000000}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.6\textwidth]{fotos/ej1_loop.png}}
+\caption{Estado de los registros tras el ciclo \texttt{LOOP}: \texttt{EAX} alcanza \hex{00000005} (5) y \texttt{ECX} queda en \hex{00000000}.}
+\label{fig:ej1}
+\end{figure}
+
+\subsection{Ejercicio 2: Salto condicional dentro de un ciclo}
+El segundo ejercicio combina un ciclo contado con un salto condicional que permite abandonarlo antes de tiempo. Dentro de un ciclo de cinco iteraciones, el registro \texttt{EAX} (inicializado en 2) se duplica en cada vuelta sumándose a sí mismo; en cuanto su valor supera la referencia de 32, un \texttt{JG} rompe el ciclo. El Código~\ref{lst:ej2} muestra la rutina.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Doblado de un valor con salida temprana al superar la referencia.}, label={lst:ej2}]
+    MOV ECX, 5             ; ciclo "largo" de respaldo
+    MOV EAX, 2             ; valor inicial
+
+    SALTO2:
+        ADD EAX, EAX       ; EAX = EAX * 2
+        CMP EAX, 32        ; supero la referencia?
+        JG SALTO3          ; si EAX > 32 -> salir
+        LOOP SALTO2
+
+    SALTO3:
+        NOP                ; destino de la salida temprana
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    ADD EAX, EAX
+    CMP EAX, 32
+    JG SALTO3
+\end{lstlisting}
+\textbf{Descripción}
+Duplica el valor de \texttt{EAX}, lo compara contra la referencia y, si la excede, salta fuera del ciclo sin esperar a que \texttt{ECX} se agote.
+\end{instruccionbox}
+
+\texttt{ADD EAX, EAX} es una forma eficiente de multiplicar por dos, ya que equivale a desplazar el valor un bit a la izquierda. Partiendo de 2, la secuencia es 4, 8, 16, 32 y 64; en la quinta vuelta \texttt{EAX} vale \hex{00000040} (64 en decimal), que es mayor que 32, por lo que \texttt{JG} (\textit{Jump if Greater}) transfiere el control a \texttt{SALTO3}. El ciclo se dimensionó con cinco iteraciones precisamente para garantizar que la condición de referencia se alcance antes de que \texttt{LOOP} lo termine por contador, demostrando que la salida fue provocada por el salto condicional y no por el agotamiento de \texttt{ECX}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.6\textwidth]{fotos/ej2_salida.png}}
+\caption{El ciclo se abandona cuando \texttt{EAX} supera 32, terminando con el valor \hex{00000040} (64).}
+\label{fig:ej2}
+\end{figure}
+
+\subsection{Ejercicio 3: \texttt{for}, \texttt{while} y \texttt{do-while}}
+El tercer ejercicio reproduce manualmente las tres estructuras de repetición de un lenguaje de alto nivel, evidenciando cómo cada una se distingue por el momento en que evalúa su condición. El Código~\ref{lst:ej3} reúne las tres construcciones.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Equivalentes en ensamblador de \texttt{for}, \texttt{while} y \texttt{do-while}.}, label={lst:ej3}]
+; --- Ciclo FOR: for(i=0; i<10; i++) ---
+    MOV contadorFOR, 0
+CICLO_FOR:
+    CMP contadorFOR, 10    ; condicion AL INICIO
+    JGE FIN_FOR
+    NOP                    ; cuerpo del ciclo
+    INC contadorFOR        ; incremento
+    JMP CICLO_FOR
+FIN_FOR:
+    MOV EAX, contadorFOR
+
+; --- Ciclo WHILE: while(contador > 0) ---
+    MOV ECX, contadorWHILE
+    MOV EAX, 5
+CICLO_WHILE:
+    CMP ECX, 0             ; condicion AL INICIO
+    JE FIN_WHILE
+    DEC ECX
+    ADD EAX, ECX
+    JMP CICLO_WHILE
+FIN_WHILE:
+
+; --- Ciclo DO-WHILE: do{...}while(contador > 0) ---
+    MOV ECX, contadorDOWHILE
+    MOV EDX, 0
+CICLO_DOWHILE:
+    INC EDX                ; cuerpo: se ejecuta al menos una vez
+    DEC ECX
+    CMP ECX, 0             ; condicion AL FINAL
+    JG CICLO_DOWHILE
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+CICLO_FOR:
+    CMP contadorFOR, 10
+    JGE FIN_FOR
+\end{lstlisting}
+\textbf{Descripción}
+Comprueba la condición de continuación \textbf{antes} de ejecutar el cuerpo, característica de los ciclos \texttt{for} y \texttt{while} (preprobados).
+\end{instruccionbox}
+
+En el \texttt{for} y el \texttt{while} la comparación encabeza el bloque, si la condición no se cumple desde el principio, el cuerpo no llega a ejecutarse. La diferencia conceptual entre ambos es que el \texttt{for} agrupa la inicialización, la prueba y el incremento en un patrón fijo, mientras que el \texttt{while} solo conserva la prueba. El salto \texttt{JGE} (\textit{Jump if Greater or Equal}) abandona el ciclo cuando el contador alcanza el límite.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+CICLO_DOWHILE:
+    INC EDX
+    DEC ECX
+    CMP ECX, 0
+    JG CICLO_DOWHILE
+\end{lstlisting}
+\textbf{Descripción}
+Ejecuta primero el cuerpo y evalúa la condición \textbf{al final}, garantizando al menos una iteración (\texttt{do-while} posprobado).
+\end{instruccionbox}
+
+El \texttt{do-while} invierte el orden: el cuerpo (\texttt{INC EDX}) se ejecuta antes de que \texttt{CMP} y \texttt{JG} decidan si repetir. Por ello, aun cuando el contador llegara ya bajo, el cuerpo correría al menos una vez. Esta distinción entre evaluar la condición al inicio o al final es exactamente la que separa a las tres estructuras en cualquier lenguaje, solo que aquí queda explícita en la posición de las instrucciones de comparación y salto.
+
+\subsection{Ejercicio 4: Factorial de 10}
+El cuarto ejercicio aplica la teoría de ciclos al cálculo de \(10! = 3\,628\,800\) mediante multiplicaciones sucesivas. Se inicializa \texttt{EAX} en 1 y \texttt{ECX} en 10; en cada vuelta se multiplica el acumulador por el contador y \texttt{LOOP} lo decrementa, de modo que se computa \(10 \times 9 \times 8 \times \dots \times 1\). El Código~\ref{lst:ej4} presenta la rutina.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Cálculo del factorial de 10 con multiplicaciones sucesivas.}, label={lst:ej4}]
+    MOV EAX, 1             ; acumulador del producto
+    MOV ECX, 10            ; multiplicador inicial = 10
+
+    FACTORIAL_10:
+        MUL ECX            ; EAX = EAX * ECX
+        LOOP FACTORIAL_10  ; ECX-- ; repetir mientras ECX != 0
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    MUL ECX
+    LOOP FACTORIAL_10
+\end{lstlisting}
+\textbf{Descripción}
+Multiplica el acumulador por el valor actual del contador y deja que \texttt{LOOP} lo reduzca, generando el producto \(10 \times 9 \times \dots \times 1\).
+\end{instruccionbox}
+
+Aquí se aprovecha una particularidad afortunada: el contador \texttt{ECX} es a la vez el multiplicando que el factorial necesita en cada paso. La instrucción \texttt{MUL ECX} multiplica \texttt{EAX} por \texttt{ECX} dejando el resultado en \texttt{EAX} (la parte alta, en este caso nula, iría a \texttt{EDX}). Como \texttt{LOOP} hace que \texttt{ECX} tome los valores 10, 9, 8, \dots, 1, el acumulador recorre todos los factores y termina con \(10! = 3\,628\,800\), que en la ventana de registros se lee como \hex{00375F00} y cabe en los 32 bits de \texttt{EAX}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.6\textwidth]{fotos/ej4_factorial.png}}
+\caption{Resultado del factorial de 10 acumulado en \texttt{EAX}: \hex{00375F00} (\(3\,628\,800\)).}
+\label{fig:ej4}
+\end{figure}
+
+\subsection{Ejercicio 5: Resumen del capítulo 4 de Irvine}
+El capítulo 4 del libro \textit{Assembly Language for x86 Processors} de Kip Irvine, titulado \textit{Data Transfers, Addressing, and Arithmetic} \cite{irvine2020assembly}, inicia con las \textbf{instrucciones de transferencia de datos}. Presenta \texttt{MOV} como la operación fundamental para copiar datos entre registros y memoria, recalcando sus restricciones, ambos operandos deben ser del mismo tamaño y no es posible mover directamente de memoria a memoria. Introduce además \texttt{MOVZX} y \texttt{MOVSX} para copiar un operando pequeño a uno mayor extendiendo con ceros o con el signo respectivamente, y \texttt{XCHG} para intercambiar el contenido de dos operandos, una operación directamente útil en algoritmos de ordenamiento.
+
+También aborda la \textbf{aritmética de enteros básica} con \texttt{INC}, \texttt{DEC}, \texttt{ADD}, \texttt{SUB} y \texttt{NEG}, detallando cómo cada una afecta a las banderas de estado (\textit{Zero}, \textit{Carry}, \textit{Sign}, \textit{Overflow}). La comprensión de estas banderas es esencial, pues son las que los saltos condicionales evalúan para tomar decisiones, el mecanismo de los ciclos.
+
+La tercera sección cubre los \textbf{operadores y directivas relacionados con datos}: \texttt{OFFSET}, que devuelve la dirección de una variable; \texttt{PTR}, que fuerza un tamaño de operando; \texttt{TYPE}, \texttt{LENGTHOF} y \texttt{SIZEOF}, que informan respectivamente del tamaño de cada elemento, del número de elementos y del tamaño total de un arreglo.
+
+Después, continúa con el \textbf{direccionamiento indirecto}, donde un registro contiene la dirección del dato. Explica los operandos indirectos (\texttt{[ESI]}), los indexados (\texttt{[ESI + ECX]}) y su uso natural para recorrer arreglos. Por último, la sección de \textbf{instrucciones \texttt{JMP} y \texttt{LOOP}} formaliza la construcción de ciclos, describe \texttt{JMP} como salto incondicional y \texttt{LOOP} como la instrucción que decrementa \texttt{ECX} y salta mientras no sea cero. El capítulo proporciona el mínimo (mover, operar, direccionar y saltar) con el que se programa cualquier algoritmo en MASMx86.
+
+\subsection{Ejercicio 6: Recorrido de un arreglo con \texttt{LOOP}}
+El sexto ejercicio recorre una cadena de caracteres asignando cada elemento al registro \texttt{EAX}, con la condición de que el número de iteraciones no se fije manualmente sino que se derive de la propia declaración del arreglo. El Código~\ref{lst:ej6} muestra la solución.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Recorrido de una cadena cargando cada carácter en \texttt{EAX}.}, label={lst:ej6}]
+; .data -> unaCadena BYTE "HOLA"
+
+    MOV   ECX, LENGTHOF unaCadena   ; longitud automatica
+    MOV   EBX, 0                    ; indice = 0
+
+    CICLO_ARREGLO:
+        MOVZX EAX, BYTE PTR [unaCadena + EBX]
+        INC   EBX                              ; siguiente posicion
+        LOOP  CICLO_ARREGLO
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    MOV ECX, LENGTHOF unaCadena
+\end{lstlisting}
+\textbf{Descripción}
+Obtiene el número de elementos del arreglo, evitando codificar su longitud de forma manual.
+\end{instruccionbox}
+
+El operador \texttt{LENGTHOF} consulta la declaración \texttt{unaCadena BYTE "HOLA"} y devuelve 4, el número de bytes que componen la cadena. La ventaja es que si la cadena cambia de tamaño, el ciclo se ajusta automáticamente sin necesidad de tocar el código del bucle, eliminando una fuente común de errores.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    MOVZX EAX, BYTE PTR [unaCadena + EBX]
+    INC EBX
+\end{lstlisting}
+\textbf{Descripción}
+Carga el byte ubicado en la dirección base más el índice, extendiéndolo con ceros a 32 bits, y avanza el índice al siguiente carácter.
+\end{instruccionbox}
+
+La dirección de cada carácter se calcula con direccionamiento indexado, sumando el índice \texttt{EBX} a la dirección base \texttt{unaCadena}. El operador \texttt{BYTE PTR} aclara que el acceso es de un solo byte, y \texttt{MOVZX} (\textit{Move with Zero-Extend}) lo coloca en \texttt{EAX} rellenando con ceros los 24 bits superiores, ya que el carácter ocupa 8 bits y el registro 32. En cada vuelta \texttt{EBX} avanza una posición y \texttt{LOOP} decrementa \texttt{ECX}, recorriendo así \texttt{'H'}, \texttt{'O'}, \texttt{'L'}, \texttt{'A'} en orden. En la última lectura \texttt{EAX} contiene \hex{00000041}, el código ASCII de \texttt{'A'}, mientras \texttt{EBX} marca el índice \hex{00000004}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.6\textwidth]{fotos/ej6_arreglo.png}}
+\caption{Recorrido de la cadena: en la última iteración \texttt{EAX} contiene \hex{00000041}, el código ASCII de \texttt{'A'}.}
+\label{fig:ej6}
+\end{figure}
+
+\subsection{Ejercicio 7: Ordenamiento ascendente}
+El último ejercicio ordena de menor a mayor un arreglo de enteros aplicando el método de la burbuja con dos ciclos anidados. El ciclo externo controla el número de pasadas y el interno compara pares adyacentes, intercambiándolos cuando están desordenados. El Código~\ref{lst:ej7} presenta la implementación.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Ordenamiento ascendente por el método de la burbuja con ciclos anidados.}, label={lst:ej7}]
+; .data -> unArreglo DWORD 100, 5, 2, 4, 1, 3
+
+    MOV   ECX, LENGTHOF unArreglo
+    DEC   ECX                   ; n-1 pasadas
+
+CONTROL_EXTERNO:
+    PUSH  ECX                   ; preservar contador externo
+    MOV   ESI, OFFSET unArreglo ; puntero al inicio
+    MOV   EDX, ECX              ; comparaciones de esta pasada
+
+CONTROL_INTERNO:
+    MOV   EAX, [ESI]            ; elemento actual
+    MOV   EBX, [ESI+4]          ; elemento siguiente
+    CMP   EAX, EBX
+    JLE   NO_CAMBIAR            ; en orden -> no intercambiar
+    MOV   [ESI], EBX            ; intercambio
+    MOV   [ESI+4], EAX
+
+NO_CAMBIAR:
+    ADD   ESI, 4               ; avanzar al siguiente par
+    DEC   EDX
+    JNZ   CONTROL_INTERNO
+    POP   ECX                  ; restaurar contador externo
+    LOOP  CONTROL_EXTERNO
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    PUSH ECX
+    ...
+    POP ECX
+    LOOP CONTROL_EXTERNO
+\end{lstlisting}
+\textbf{Descripción}
+Preserva el contador del ciclo externo en la pila mientras el ciclo interno reutiliza los registros, restaurándolo antes de la siguiente pasada.
+\end{instruccionbox}
+
+El reto de los ciclos anidados es que ambos querrían usar \texttt{ECX}. La solución es guardar el contador externo con \texttt{PUSH ECX} al inicio de cada pasada y recuperarlo con \texttt{POP ECX} justo antes de \texttt{LOOP}, de modo que el ciclo interno (controlado aquí por \texttt{EDX}) pueda operar libremente sin destruir la cuenta de pasadas. Sin esta técnica, se corrompería el ciclo externo y el ordenamiento nunca terminaría correctamente.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    CMP EAX, EBX
+    JLE NO_CAMBIAR
+    MOV [ESI], EBX
+    MOV [ESI+4], EAX
+\end{lstlisting}
+\textbf{Descripción}
+Compara dos elementos adyacentes y, si están en orden incorrecto, los intercambia escribiéndolos cruzados en memoria.
+\end{instruccionbox}
+
+El corazón del algoritmo es la comparación de cada par adyacente. Se cargan el elemento actual (\texttt{[ESI]}) y el siguiente (\texttt{[ESI+4]}, cuatro bytes más adelante por tratarse de un \texttt{DWORD}); si el actual es menor o igual al siguiente (\texttt{JLE}), ya están en orden y no se hace nada. En caso contrario se intercambian, escribiendo cada valor en la posición del otro. Tras procesar el par, \texttt{ESI} avanza cuatro bytes al siguiente. Repitiendo este barrido, el arreglo \texttt{100, 5, 2, 4, 1, 3} queda finalmente ordenado como \texttt{1, 2, 3, 4, 5, 100}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=\textwidth]{fotos/ej7_ordenado.png}}
+\caption{Arreglo ordenado de forma ascendente tras aplicar el método de la burbuja.}
+\label{fig:ej7}
+\end{figure}
+
+\section{Conclusiones}
+Al hacer esta práctica, se comprendió mejor que las estructuras de control que en un lenguaje de alto nivel se dan por sentadas son, a nivel de máquina, combinaciones de comparaciones y saltos sobre el contador de programa.
+
+La instrucción \texttt{LOOP} demostró ser una herramienta cómoda para los ciclos contados al fusionar el decremento y el salto, pero también dependende de \texttt{ECX}, que obliga a preservar ese registro en la pila cuando se anidan ciclos, como ocurrió en el ordenamiento.
+
+El uso de \texttt{LENGTHOF} para obtener la longitud del arreglo en lugar de escribirla a mano resultó útil, delegar al ensamblador un dato que puede cambiar evita errores difíciles de rastrear. Implementar el método de la burbuja con direccionamiento indexado y el intercambio de elementos en memoria demuestra cómo se construyen algoritmos completos y complejos en ensamblador.
+
+\nocite{*}
+\printbibliography[title={Referencias}]
+\addcontentsline{toc}{section}{Referencias}
+
+\appendix
+\section{Repositorio de código}
+El código completo de los ejercicios en \textbf{MASM x86} desarrollados durante esta práctica se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/ApoloEM/OyAdeC/tree/main/practica6}
+\end{center}
+
+\end{document}
