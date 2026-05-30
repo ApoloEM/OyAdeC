@@ -1,0 +1,722 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish, es-tabla]{babel}
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\geometry{left=2.5cm, right=2.5cm, top=3cm, bottom=3cm}
+\setlength{\parskip}{1\baselineskip}
+\usepackage[style=ieee, backend=biber]{biblatex}
+\addbibresource{referencias.bib}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[table]{xcolor}
+\usepackage{tikz}
+\usepackage{eso-pic}
+\usepackage{titlesec}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\usetikzlibrary{calc}
+\definecolor{VerdeUABC}{RGB}{75, 83, 32}
+\definecolor{verdeData}{rgb}{0,0.5,0}
+\definecolor{rowLight}{RGB}{245, 246, 240}
+
+\newcolumntype{R}{>{\centering\arraybackslash}p{2.5cm}}
+\newcolumntype{V}{>{\centering\arraybackslash}p{3cm}}
+
+\sisetup{
+detect-all,
+table-number-alignment=center
+}
+
+\newtcolorbox{instruccionbox}{
+colback=gray!5,
+colframe=black,
+title=Análisis de instrucción
+}
+
+\definecolor{backcolour}{rgb}{0.96,0.96,0.94}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{codeorange}{rgb}{0.8,0.4,0}
+\definecolor{hexcolor}{RGB}{0, 102, 204}
+\definecolor{bincolor}{RGB}{153, 0, 153}
+
+\lstdefinestyle{baseStyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen}\itshape,
+    numberstyle=\tiny\color{gray},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    captionpos=b,
+    numbers=left,
+    numbersep=8pt,
+    tabsize=4,
+    showstringspaces=false
+}
+
+\lstdefinestyle{assemblyStyle}{
+    style=baseStyle,
+    language=[x86masm]Assembler,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={section, global, extern, db, dw, dd, dq, times, equ, lea, movzx, movsx},
+    morecomment=[l]{;},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstdefinestyle{cStyle}{
+    style=baseStyle,
+    language=C,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{codepurple},
+    morekeywords={__asm, typedef, struct},
+    commentstyle=\color{codegreen}\itshape
+}
+
+\lstset{style=assemblyStyle}
+
+\newcommand{\inst}[1]{\texttt{\textbf{#1}}}
+\newcommand{\reg}[1]{\texttt{\textcolor{blue}{#1}}}
+\newcommand{\hex}[1]{\texttt{\textcolor{hexcolor}{#1}}}
+\newcommand{\bin}[1]{\texttt{\textcolor{bincolor}{#1}}}
+\newcommand{\instrformat}[2]{\texttt{\textbf{#1} #2}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\footnotesize OyAdeC}
+\chead{\footnotesize Práctica \numeroPractica: \tituloPractica}
+\rhead{\footnotesize 1110604}
+\cfoot{\thepage}
+
+\titleformat{\section}{\large\bfseries\color{VerdeUABC}}{\thesection.}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}{\small\bfseries}{\thesubsubsection.}{1em}{}
+
+\newcommand{\tituloPractica}{Lenguaje de Alto Nivel y Bajo Nivel}
+\newcommand{\numeroPractica}{08}
+\newcommand{\profesor}{Ing. Félix Arredondo Santamaría}
+\newcommand{\fechaEntrega}{15/MAYO/2026}
+
+\newcommand{\integranteA}{Moya Monreal Erick Anselmo --- 1110604}
+
+\newcommand{\MarcoPagina}{
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1.2pt, color=VerdeUABC!90]
+            ($(current page.north west) + (0.7cm,-0.7cm)$) rectangle ($(current page.south east) + (-0.7cm,0.7cm)$);
+        \draw [line width=0.6pt, color=VerdeUABC!60]
+            ($(current page.north west) + (0.85cm,-0.85cm)$) rectangle ($(current page.south east) + (-0.85cm,0.85cm)$);
+    \end{tikzpicture}
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{center}
+        \includegraphics[width=4.5cm]{../recursos/escudo-actualizado-2022.png}
+        \hspace{1cm}
+        \includegraphics[width=5.5cm]{../recursos/1593484343817.jpg}
+        \vspace{0.5cm}
+
+        \LARGE \textbf{Universidad Autónoma de Baja California}\\
+        \Large Facultad de Ingeniería Mexicali\\
+        \Large Ingeniería en Computación\\
+        \vspace{0.5cm}
+
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}} \\
+        \large \textbf{Reporte de Práctica \numeroPractica}\\
+        \vspace{0.1cm}
+        {\Huge {\tituloPractica}}\\
+        {\color{VerdeUABC}\rule{\linewidth}{0.5mm}}
+        \vfill
+        Organización y Arquitectura de Computadoras\\
+        \profesor \\
+        \vspace{1.3cm}
+        \integranteA \\
+        \vspace{1cm}
+        \textbf{Fecha de entrega} \\ \fechaEntrega \\
+        \vfill
+        {\color{VerdeUABC}\rule{4cm}{0.1mm}}\\
+        Mexicali, Baja California\\ \today
+    \end{center}
+\end{titlepage}
+
+\newpage
+\AddToShipoutPictureBG{\MarcoPagina}
+\begingroup
+\small
+\setlength{\parskip}{5pt}
+\tableofcontents
+\endgroup
+
+\newpage
+\section{Introducción}
+Cuando se desarrolla software, rara vez ocurre en un único nivel de abstracción o con un único lenguaje de programación. En la práctica profesional es frecuente combinar lenguajes de alto nivel, que ofrecen productividad y legibilidad, con lenguaje ensamblador, que otorga control absoluto sobre los registros, la memoria y el conjunto de instrucciones del procesador. Esta interoperabilidad permite delegar la lógica crítica a rutinas optimizadas a bajo nivel mientras la capa de presentación se mantiene sencilla y mantenible.
+
+En esta práctica se documenta la construcción de un sistema de gestión para una biblioteca, en el cual la totalidad de la lógica (agregar, prestar, devolver, buscar y listar libros) se implementa en \texttt{MASM x86} mediante bloques de ensamblador en línea \texttt{\_\_asm}, mientras que el lenguaje C se limita estrictamente a la interfaz de usuario: el menú, la captura de datos por teclado y la impresión de resultados en consola. Se analiza el recorrido de un arreglo de estructuras en memoria, el cálculo manual de desplazamientos (\textit{offsets}) sobre cada campo, la comparación de cadenas carácter por carácter y la invocación de funciones de C desde ensamblador respetando la convención de llamada \texttt{cdecl}.
+
+\section{Problemática y Justificación}
+A veces es necesario trabajar con sistemas computacionales que cuentan con poca memoria o requieren un rendimiento extremo, como en el caso de sistemas embebidos, controladores de dispositivos o software de tiempo real. En estos contextos, el lenguaje ensamblador se convierte en una herramienta indispensable para exprimir al máximo las capacidades del hardware, optimizar el uso de memoria y garantizar la eficiencia de cada instrucción ejecutada \cite{stallings2019computer}. Sin embargo, la complejidad del ensamblador hacen que su uso exclusivo sea impráctico para proyectos grandes o con interfaces de usuario complejas.
+
+Al trasladar la lógica de un sistema de gestión a lenguaje ensamblador se debe conocer el tamaño exacto en bytes de cada estructura, calcular a mano el desplazamiento de cada campo respecto a la dirección base, avanzar el puntero de un registro al siguiente sumando el tamaño completo del registro y recorrer las cadenas byte por byte hasta el carácter nulo. 
+
+\section{Objetivos de la práctica}
+\textbf{Objetivo General}
+
+Diseñar e implementar un sistema de gestión de biblioteca híbrido en el que la lógica completa resida en lenguaje ensamblador \texttt{MASM x86} y la interfaz de usuario en lenguaje C, demostrando la interoperabilidad entre un lenguaje de alto nivel y uno de bajo nivel mediante el manejo explícito de estructuras, cadenas y la convención de llamada \texttt{cdecl}.
+
+\textbf{Objetivos Específicos}
+\begin{itemize}
+    \item \textbf{Delimitar y separar} las responsabilidades de cada lenguaje, confinando la totalidad de la lógica (búsqueda, validación, conteo y modificación de datos) a bloques de ensamblador en línea y reservando para C únicamente la captura de entrada y la impresión de salida.
+    \item \textbf{Calcular e interpretar} los desplazamientos en bytes de cada campo de la estructura \texttt{Libro}, así como el tamaño total del registro, para recorrer correctamente el arreglo de estructuras en memoria mediante direccionamiento indirecto.
+    \item \textbf{Implementar} la comparación de cadenas carácter por carácter en ensamblador, deteniéndose en el carácter nulo terminador, como sustituto de la función \texttt{strcmp} del lenguaje de alto nivel.
+    \item \textbf{Aplicar} la convención de llamada \texttt{cdecl} para invocar una función de C desde un bloque \texttt{\_\_asm}, apilando los parámetros en orden inverso y liberando la pila tras el retorno.
+    \item \textbf{Verificar} el correcto funcionamiento de las cinco operaciones del sistema (agregar, prestar, devolver, buscar y listar) mediante pruebas de ejecución que contemplen tanto los casos válidos como los casos límite (libro inexistente, sin ejemplares disponibles e inventario completo).
+\end{itemize}
+
+\section{Marco Teórico}
+\subsection{Lenguajes de Alto Nivel y de Bajo Nivel}
+Los lenguajes de programación se clasifican habitualmente según su grado de abstracción respecto al hardware. Un lenguaje de \textbf{alto nivel}, como C, Java o Python, ofrece construcciones cercanas al razonamiento humano (variables tipadas, estructuras de datos, funciones) y delega en el compilador la traducción a instrucciones de máquina, ocultando los detalles de registros y direcciones de memoria \cite{tanenbaum2013structured}. Un lenguaje de \textbf{bajo nivel}, como el ensamblador, mantiene una correspondencia prácticamente uno a uno con el lenguaje máquina de una arquitectura específica, exponiendo de forma explícita los registros del procesador, los modos de direccionamiento y la organización de la memoria \cite{irvine2020assembly}. El lenguaje C ocupa una posición intermedia particular: aunque se considera de alto nivel, su modelo de memoria y su acceso a punteros lo hacen idóneo para coexistir con ensamblador dentro de un mismo programa.
+
+\subsection{Programación Híbrida e Interoperabilidad C/Ensamblador}
+La programación híbrida consiste en combinar dos o más lenguajes dentro de un mismo ejecutable, asignando a cada uno la tarea para la que resulta más adecuado. En el entorno de Microsoft Visual C++ (MSVC) para arquitecturas de 32 bits, esta combinación se logra mediante el bloque de \textit{ensamblador en línea} (\textit{inline assembly}), delimitado por la palabra clave \texttt{\_\_asm \{ \dots \}} \cite{irvine2011assembly}. Dentro de este bloque, el código ensamblador puede acceder directamente, por su nombre, a las variables locales y globales declaradas en C, así como a los parámetros de la función anfitriona, ya que el compilador resuelve esos identificadores como referencias a memoria o a la pila. Esta característica elimina la necesidad de definir interfaces explícitas y convierte al ensamblador en línea en el mecanismo de interoperabilidad más directo y ergonómico para proyectos x86.
+
+En este proyecto la división de responsabilidades es, el lenguaje C actúa exclusivamente como capa de presentación e interfaz (despliegue del menú, captura mediante \texttt{scanf\_s} y \texttt{gets\_s}, e impresión con \texttt{printf}), mientras que cada decisión, comparación, conteo y modificación de datos se ejecuta dentro de los bloques \texttt{\_\_asm}.
+
+\subsection{La Estructura \texttt{Libro} y su Disposición en Memoria}
+El núcleo del sistema es un arreglo de estructuras de tipo \texttt{Libro}. A diferencia del lenguaje de alto nivel, donde se accede a un campo por su nombre, en ensamblador es indispensable conocer el \textbf{desplazamiento} (\textit{offset}) en bytes de cada campo respecto a la dirección base de la estructura, así como el \textbf{tamaño total} del registro para poder avanzar al siguiente elemento del arreglo \cite{stallings2019computer}. La estructura empleada y su disposición se resumen en la Tabla~\ref{tab:layout_libro}.
+
+\begin{table}[H]
+\centering
+\caption{Disposición en memoria de la estructura \texttt{Libro} (tamaño total: 112 bytes).}
+\label{tab:layout_libro}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}m{3.2cm}
+    >{\centering\arraybackslash}m{2.2cm}
+    >{\centering\arraybackslash}m{2.4cm}
+    >{\centering\arraybackslash}m{2.4cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Campo} &
+\color{white}\textbf{Tipo} &
+\color{white}\textbf{Tamaño (bytes)} &
+\color{white}\textbf{Offset} \\
+\midrule
+\rowcolor{rowLight}
+\texttt{titulo} & \texttt{char[50]} & 50 & \texttt{+0} \\
+\texttt{autor} & \texttt{char[50]} & 50 & \texttt{+50} \\
+\rowcolor{rowLight}
+\texttt{anio} & \texttt{int} & 4 & \texttt{+100} \\
+\texttt{cantidad} & \texttt{int} & 4 & \texttt{+104} \\
+\rowcolor{rowLight}
+\texttt{cantidad\_total} & \texttt{int} & 4 & \texttt{+108} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Estos valores son los que aparecen literalmente en el código ensamblador: la instrucción \texttt{add edx, 112} avanza el puntero de un libro al siguiente, mientras que \texttt{[edx+100]}, \texttt{[edx+104]} y \texttt{[edx+108]} acceden respectivamente al año, a los ejemplares disponibles y al inventario total. El campo \texttt{cantidad} representa las copias disponibles para préstamo y \texttt{cantidad\_total} el total adquirido por la biblioteca; la diferencia entre ambos corresponde a los libros actualmente prestados.
+
+\subsection{Direccionamiento Indirecto y Recorrido de Arreglos}
+Para recorrer el arreglo de estructuras se emplea el direccionamiento indirecto, en el cual un registro contiene la dirección de memoria del dato a manipular. La directiva \texttt{LEA} (\textit{Load Effective Address}) carga la dirección base del arreglo \texttt{biblioteca} en un registro puntero, y a partir de ahí la combinación de un desplazamiento constante (\texttt{[edx+104]}) con el avance del puntero (\texttt{add edx, 112}) permite visitar secuencialmente cada registro \cite{patterson2016computer}. El registro \texttt{EBX} actúa como índice del libro actual y \texttt{ECX} como total de libros, replicando el patrón de un ciclo \texttt{for} del lenguaje de alto nivel mediante \texttt{CMP} y saltos condicionales.
+
+\subsection{Comparación de Cadenas a Bajo Nivel}
+En el lenguaje de alto nivel la comparación de dos títulos se reduce a una llamada a \texttt{strcmp}. En ensamblador esta operación debe construirse de forma manual, se recorren ambas cadenas simultáneamente con dos punteros (\texttt{ESI} para el título buscado y \texttt{EDI} para el almacenado), comparando byte a byte los caracteres con \texttt{CMP}. Si dos caracteres difieren, las cadenas no coinciden; si son iguales y se alcanza el carácter nulo (\texttt{0}) que marca el fin de cadena, la coincidencia es completa \cite{irvine2020assembly}. La instrucción \texttt{TEST al, al} se utiliza para detectar ese terminador, pues activa la bandera de cero (\texttt{ZF}) únicamente cuando el registro vale cero.
+
+\subsection{La Convención de Llamada \texttt{cdecl}}
+Para invocar una función de C desde ensamblador es obligatorio respetar una \textit{convención de llamada}, que define cómo se pasan los parámetros y quién libera la pila. El lenguaje C utiliza por defecto la convención \texttt{cdecl}, en la cual los argumentos se apilan mediante \texttt{PUSH} en \textbf{orden inverso} (de derecha a izquierda según la firma de la función), de modo que el primer parámetro quede en la cima de la pila, y es la \textbf{rutina llamante} quien debe restaurar el puntero de pila tras el retorno \cite{stallings2019computer}. Por ello, después de un \texttt{CALL} a una función con cuatro argumentos de 4 bytes, el código ensamblador ejecuta \texttt{add esp, 16} para liberar los 16 bytes apilados. Este mecanismo es el que utiliza la operación de listado para delegar la impresión de cada libro a una función de C.
+
+\section{Procedimiento}
+El desarrollo de la práctica se organizó en torno a la construcción del sistema de gestión, partiendo de la definición de la estructura de datos y avanzando hacia la implementación de cada función con su lógica completamente alojada en ensamblador. Las actividades realizadas fueron las siguientes:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Definición de la estructura de datos.} Se declaró en C la estructura \texttt{Libro} con los campos solicitados (título, autor, año y cantidad de ejemplares) más un campo adicional \texttt{cantidad\_total} para distinguir el inventario completo de los ejemplares disponibles. Se reservó un arreglo global \texttt{biblioteca[100]} y un contador \texttt{totalLibros}.
+
+    \item \textbf{Construcción de la interfaz en C.} Se programó la función \texttt{main} con un menú cíclico que captura la opción del usuario y los datos de cada libro mediante \texttt{scanf\_s} y \texttt{gets\_s}. Se confinó a C exclusivamente la entrada y la salida.
+
+    \item \textbf{Implementación de \texttt{agregar\_libro}.} Se desarrolló la lógica en ensamblador para buscar si el título ya existe; de ser así, se incrementa el inventario (reabastecimiento), y de lo contrario se copian título y autor carácter por carácter, se almacenan año y cantidad, y se incrementa el contador de libros.
+
+    \item \textbf{Implementación de \texttt{prestar\_libro}.} Se codificó la búsqueda del libro por título y la validación de disponibilidad, solo si existen ejemplares disponibles se decrementa el campo \texttt{cantidad}.
+
+    \item \textbf{Implementación de \texttt{devolver\_libro}.} Se programó la operación inversa, incrementando \texttt{cantidad} siempre que no se supere el inventario total \texttt{cantidad\_total}, evitando devoluciones inválidas.
+
+    \item \textbf{Implementación de \texttt{buscar\_libro}.} Se implementó la búsqueda que, al encontrar el libro, devuelve a C los punteros y valores de cada campo para su posterior impresión por la interfaz.
+
+    \item \textbf{Implementación de \texttt{listar\_libros}.} Se recorrió el arreglo completo en ensamblador, invocando para cada elemento una función de impresión escrita en C mediante la convención de llamada \texttt{cdecl}.
+
+    \item \textbf{Pruebas de ejecución.} Se cargó un conjunto inicial de libros y se ejecutaron las cinco operaciones, verificando tanto los casos exitosos como los casos límite (libro inexistente, sin ejemplares e inventario lleno).
+\end{enumerate}
+
+\section{Resultados con pruebas}
+\subsection{Estructura de datos e interfaz en C}
+La base del sistema es la estructura \texttt{Libro} y el arreglo global que la contiene, mostrados en el Código~\ref{lst:struct}. Cabe destacar que el tamaño de esta estructura es de \textbf{112 bytes} (50 + 50 + 4 + 4 + 4), valor que se utiliza repetidamente en el código ensamblador para avanzar de un libro al siguiente dentro del arreglo. Como los campos enteros quedan en desplazamientos múltiplos de 4 (offsets 100, 104 y 108), no se introduce relleno (\textit{padding}) adicional por alineación.
+
+\begin{lstlisting}[style=cStyle, caption={Definición de la estructura \texttt{Libro} y variables globales.}, label={lst:struct}]
+typedef struct {
+    char titulo[50];
+    char autor[50];
+    int anio;
+    int cantidad;        // ejemplares disponibles
+    int cantidad_total;  // inventario completo
+} Libro;
+
+Libro biblioteca[100];
+int totalLibros = 0;
+\end{lstlisting}
+
+La interfaz de usuario reside por completo en la función \texttt{main} (Código~\ref{lst:main}). Su única responsabilidad es desplegar el menú, capturar la entrada del usuario y derivar cada opción a la función de lógica correspondiente. Ninguna decisión sobre los datos de la biblioteca se toma en esta capa.
+
+\begin{lstlisting}[style=cStyle, caption={Menú principal y captura de datos (interfaz en C).}, label={lst:main}]
+int main() {
+    int opc;
+    char titulo[50], autor[50];
+    int anio, cant;
+
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    inicializar_datos();
+
+    while (1) {
+        printf("\n1. Agregar Libro\n2. Prestar Libro\n3. Devolver Libro\n"
+               "4. Buscar Libro\n5. Listar Libros\n6. Salir\nOpcion: ");
+        scanf_s("%d", &opc);
+        getchar();
+        switch (opc) {
+        case 1:
+            printf("Titulo: "); gets_s(titulo, 50);
+            printf("Autor: ");  gets_s(autor, 50);
+            printf("Anio: ");   scanf_s("%d", &anio);
+            printf("Cantidad: "); scanf_s("%d", &cant);
+            agregar_libro(titulo, autor, anio, cant);
+            break;
+        case 2: printf("Titulo a prestar: ");  gets_s(titulo, 50); prestar_libro(titulo); break;
+        case 3: printf("Titulo a devolver: "); gets_s(titulo, 50); devolver_libro(titulo); break;
+        case 4: printf("Titulo a buscar: ");   gets_s(titulo, 50); buscar_libro(titulo); break;
+        case 5: listar_libros(); break;
+        case 6: return 0;
+        }
+    }
+    return 0;
+}
+\end{lstlisting}
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/menu_principal.png}}
+\caption{Menú principal del sistema de gestión de biblioteca desplegado por la interfaz en C.}
+\label{fig:menu}
+\end{figure}
+
+\subsection{Función \texttt{agregar\_libro}}
+Esta función recibe desde C el título, el autor, el año y la cantidad de ejemplares. Primero se recorre el arreglo buscando si el título ya existe, si lo encuentra, suma la nueva cantidad tanto a los ejemplares disponibles como al inventario total (reabastecimiento); si no, copia los datos en el primer espacio libre y aumenta el contador de libros. El Código~\ref{lst:agregar} muestra la implementación completa.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Lógica completa de \texttt{agregar\_libro} en ensamblador en línea.}, label={lst:agregar}]
+xor ebx, ebx                ; EBX = indice del libro actual = 0
+mov ecx, totalLibros        ; ECX = total de libros existentes
+lea edx, biblioteca         ; EDX = direccion base del arreglo
+
+loop_verificar:
+    cmp ebx, ecx            ; recorrimos todos los libros?
+    jge es_nuevo            ; si -> el titulo no existe, es nuevo
+    push ecx                ; preservar contador antes del compare
+    mov esi, t              ; ESI -> titulo buscado
+    mov edi, edx            ; EDI -> titulo del libro actual
+cmp_check:
+    mov al, [esi]
+    mov ah, [edi]
+    cmp al, ah              ; comparar caracter a caracter
+    jne next_check
+    test al, al            ; llegamos al nulo terminador?
+    jz encontrado_update   ; si -> coincidencia completa
+    inc esi
+    inc edi
+    jmp cmp_check
+next_check:
+    pop ecx
+    add edx, 112           ; avanzar al siguiente libro (+112 bytes)
+    inc ebx
+    jmp loop_verificar
+encontrado_update:
+    pop ecx
+    mov eax, cant
+    add [edx + 104], eax   ; sumar a ejemplares disponibles
+    add [edx + 108], eax   ; sumar al inventario total
+    mov resultado, 1       ; codigo: ya existia
+    jmp fin_agregar
+es_nuevo:
+    mov eax, totalLibros
+    imul eax, eax, 112     ; offset del nuevo libro = total * 112
+    lea edi, biblioteca[eax]
+    mov esi, t             ; copiar titulo
+    xor ecx, ecx
+copy_titulo:
+    mov al, [esi + ecx]
+    mov [edi + ecx], al
+    test al, al
+    jz fin_titulo
+    inc ecx
+    jmp copy_titulo
+fin_titulo:
+    add edi, 50            ; avanzar al campo autor (offset +50)
+    mov esi, a
+    xor ecx, ecx
+copy_autor:
+    mov al, [esi + ecx]
+    mov [edi + ecx], al
+    test al, al
+    jz fin_autor
+    inc ecx
+    jmp copy_autor
+fin_autor:
+    add edi, 50            ; avanzar al campo anio (offset +100)
+    mov eax, an
+    mov [edi], eax
+    add edi, 4             ; cantidad disponible (offset +104)
+    mov eax, cant
+    mov [edi], eax
+    add edi, 4             ; cantidad_total (offset +108)
+    mov eax, cant
+    mov [edi], eax
+    inc totalLibros
+    mov resultado, 0       ; codigo: libro nuevo agregado
+fin_agregar:
+\end{lstlisting}
+
+A continuación se analizan las instrucciones más representativas de esta rutina.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    lea edx, biblioteca
+\end{lstlisting}
+\textbf{Descripción}
+Carga en \texttt{EDX} la dirección base del arreglo \texttt{biblioteca}, no su contenido.
+\end{instruccionbox}
+
+A diferencia de \texttt{MOV}, que copiaría el \textit{valor} almacenado en una dirección, \texttt{LEA} (\textit{Load Effective Address}) calcula y carga la \textit{dirección} efectiva del operando. Es el equivalente a obtener un puntero al primer elemento del arreglo, sobre el cual se aplicará posteriormente el direccionamiento indirecto para recorrer cada libro.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    test al, al
+    jz encontrado_update
+\end{lstlisting}
+\textbf{Descripción}
+Detecta el carácter nulo terminador de la cadena: si \texttt{AL} vale cero, ambos títulos coincidieron por completo.
+\end{instruccionbox}
+
+La instrucción \texttt{TEST} realiza un \texttt{AND} lógico entre sus operandos sin guardar el resultado, actualizando únicamente las banderas. Al aplicar \texttt{TEST al, al}, la bandera de cero (\texttt{ZF}) se activa solo si \texttt{AL} es cero. Como este punto del código únicamente se alcanza cuando los dos caracteres comparados son iguales, un valor nulo implica que se llegó simultáneamente al fin de ambas cadenas: la coincidencia es total. Este es el mecanismo que sustituye a \texttt{strcmp} del lenguaje de alto nivel.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    imul eax, eax, 112
+    lea edi, biblioteca[eax]
+\end{lstlisting}
+\textbf{Descripción}
+Calcula el desplazamiento del primer espacio libre del arreglo multiplicando el número de libros por 112 bytes.
+\end{instruccionbox}
+
+Para situar el nuevo libro al final del arreglo se multiplica el índice (\texttt{totalLibros}) por el tamaño de la estructura (112 bytes). El resultado es el desplazamiento en bytes desde la base; sumándolo a \texttt{biblioteca} mediante \texttt{LEA} se obtiene la dirección exacta donde comenzar a escribir el título. Este cálculo manual es precisamente lo que el compilador de un lenguaje de alto nivel realizaría de forma automática al indexar \texttt{biblioteca[totalLibros]}.
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    add [edx + 104], eax
+    add [edx + 108], eax
+\end{lstlisting}
+\textbf{Descripción}
+Reabastecimiento: suma la nueva cantidad a los ejemplares disponibles (offset +104) y al inventario total (offset +108).
+\end{instruccionbox}
+
+Cuando el libro ya existía, no se duplica el registro: se incrementan ambos contadores con la cantidad recibida. El uso de los desplazamientos \texttt{+104} y \texttt{+108} sobre el puntero \texttt{EDX} accede directamente a los campos \texttt{cantidad} y \texttt{cantidad\_total}, conforme a la disposición de la Tabla~\ref{tab:layout_libro}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/agregar_nuevo.png}}
+\caption{Resultado al agregar un libro nuevo a la biblioteca.}
+\label{fig:agregar_nuevo}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/agregar_existente.png}}
+\caption{Reabastecimiento al agregar un título que ya existía en el inventario.}
+\label{fig:agregar_existente}
+\end{figure}
+
+\subsection{Función \texttt{prestar\_libro}}
+Esta función localiza un libro por su título y, en caso de existir ejemplares disponibles, decrementa en uno el campo \texttt{cantidad}. Devuelve a C un código de estado: \texttt{1} si el préstamo fue exitoso, \texttt{2} si no quedan ejemplares y \texttt{0} si el libro no se encontró. El Código~\ref{lst:prestar} presenta la rutina.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Lógica de \texttt{prestar\_libro}: búsqueda y validación de disponibilidad.}, label={lst:prestar}]
+xor ebx, ebx
+mov ecx, totalLibros
+lea edx, biblioteca
+loop_buscar:
+    cmp ebx, ecx
+    jge fin_busqueda
+    push ecx
+    mov esi, t
+    mov edi, edx
+cmp_str:
+    mov al, [esi]
+    mov ah, [edi]
+    cmp al, ah
+    jne next_book_pop
+    test al, al
+    jz found
+    inc esi
+    inc edi
+    jmp cmp_str
+next_book_pop:
+    pop ecx
+    add edx, 112
+    inc ebx
+    jmp loop_buscar
+found:
+    pop ecx
+    mov eax, [edx + 104]   ; ejemplares disponibles
+    cmp eax, 0
+    jle sin_stock          ; si <= 0, no hay disponibles
+    dec eax                ; un ejemplar menos
+    mov [edx + 104], eax
+    mov encontrado, 1      ; prestamo exitoso
+    jmp fin_busqueda
+sin_stock:
+    mov encontrado, 2      ; sin ejemplares
+fin_busqueda:
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    mov eax, [edx + 104]
+    cmp eax, 0
+    jle sin_stock
+\end{lstlisting}
+\textbf{Descripción}
+Lee los ejemplares disponibles y verifica si quedan copias antes de prestar.
+\end{instruccionbox}
+
+Esta es la validación central de la operación. Se carga en \texttt{EAX} el valor del campo \texttt{cantidad} (offset \texttt{+104}) y se compara contra cero. La instrucción \texttt{JLE} (\textit{Jump if Less or Equal}) desvía el flujo a la etiqueta \texttt{sin\_stock} cuando no hay ejemplares, impidiendo que el contador adopte valores negativos. Solo si la comparación indica que hay disponibilidad se ejecuta el \texttt{DEC} que reduce el inventario disponible. Toda esta decisión en C sería un \texttt{if (cantidad > 0)}.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/prestar_ok.png}}
+\caption{Préstamo exitoso de un libro con ejemplares disponibles.}
+\label{fig:prestar_ok}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/prestar_sinstock.png}}
+\caption{Intento de préstamo de un título sin ejemplares disponibles (caso límite).}
+\label{fig:prestar_sinstock}
+\end{figure}
+
+\subsection{Función \texttt{devolver\_libro}}
+Es la operación inversa al préstamo, incrementa en uno el campo \texttt{cantidad}, pero solo si este no ha alcanzado el inventario total \texttt{cantidad\_total}. De esta forma se evita registrar la devolución de más ejemplares de los que la biblioteca posee. El Código~\ref{lst:devolver} muestra el bloque de validación, idéntico en su búsqueda a las rutinas anteriores.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Validación de \texttt{devolver\_libro}: no exceder el inventario total.}, label={lst:devolver}]
+found_dev:
+    pop ecx
+    mov eax, [edx + 104]   ; ejemplares disponibles
+    mov ecx, [edx + 108]   ; inventario total
+    cmp eax, ecx
+    jge inventario_lleno   ; disponibles >= total -> nada que devolver
+    inc eax                ; un ejemplar mas
+    mov [edx + 104], eax
+    mov encontrado, 1      ; devolucion exitosa
+    jmp fin_busqueda_dev
+inventario_lleno:
+    mov encontrado, 2      ; ya estan todas las copias
+fin_busqueda_dev:
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    mov eax, [edx + 104]
+    mov ecx, [edx + 108]
+    cmp eax, ecx
+    jge inventario_lleno
+\end{lstlisting}
+\textbf{Descripción}
+Compara los ejemplares disponibles contra el inventario total para impedir devoluciones inválidas.
+\end{instruccionbox}
+
+Se cargan en sendos registros los campos \texttt{cantidad} (offset \texttt{+104}) e \texttt{cantidad\_total} (offset \texttt{+108}). Si los ejemplares disponibles son mayores o iguales al total (\texttt{JGE}), significa que ninguna copia está prestada y, por tanto, no procede la devolución. Este control evita que el campo \texttt{cantidad} supere al inventario real, manteniendo la coherencia de los datos. La distinción entre ambos campos, disponibles frente a total, es justamente la razón por la que se añadió \texttt{cantidad\_total} a la estructura original.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/devolver_ok.png}}
+\caption{Devolución exitosa de un ejemplar previamente prestado.}
+\label{fig:devolver_ok}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/devolver_lleno.png}}
+\caption{Intento de devolución con el inventario ya completo (caso límite).}
+\label{fig:devolver_lleno}
+\end{figure}
+
+\subsection{Función \texttt{buscar\_libro}}
+Esta función localiza un libro por su título y, al encontrarlo, entrega a C los datos de cada campo para que la interfaz los imprima. Aquí se aprecia con claridad la división de responsabilidades, el ensamblador resuelve la búsqueda y obtiene los punteros y valores, mientras que la impresión se delega a la función auxiliar \texttt{imprimir\_libro\_c}. El Código~\ref{lst:buscar} muestra el bloque de extracción de datos.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Extracción de los campos del libro encontrado en \texttt{buscar\_libro}.}, label={lst:buscar}]
+found_info:
+    pop ecx
+    mov encontrado, 1
+    mov resTitulo, edx     ; puntero al titulo (offset +0)
+    lea eax, [edx + 50]
+    mov resAutor, eax      ; puntero al autor (offset +50)
+    mov eax, [edx + 100]
+    mov resAnio, eax       ; valor del anio (offset +100)
+    mov eax, [edx + 104]
+    mov resCant, eax       ; ejemplares disponibles (offset +104)
+fin_busqueda_info:
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    mov resTitulo, edx
+    lea eax, [edx + 50]
+    mov resAutor, eax
+\end{lstlisting}
+\textbf{Descripción}
+Devuelve a C las direcciones del título y del autor dentro de la estructura encontrada.
+\end{instruccionbox}
+
+El título comienza en el offset \texttt{+0}, por lo que el propio puntero \texttt{EDX} ya es su dirección. Para el autor se emplea \texttt{LEA eax, [edx + 50]}, que calcula la dirección situada 50 bytes más adelante (el inicio del campo \texttt{autor}) sin leer su contenido. Estas direcciones se almacenan en variables de tipo \texttt{char*} de C, que luego se pasan a \texttt{printf}. El año y la cantidad, en cambio, se extraen por valor con \texttt{MOV}, ya que son enteros.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.5\textwidth]{fotos/buscar_ok.png}}
+\caption{Resultado de una búsqueda exitosa con la información completa del libro.}
+\label{fig:buscar_ok}
+\end{figure}
+
+\subsection{Función \texttt{listar\_libros}}
+La operación de listado recorre el arreglo completo y, para cada libro, invoca la función de impresión escrita en C. Este es el punto donde el ensamblador debe respetar la convención de llamada \texttt{cdecl} para llamar a una función del lenguaje de alto nivel. El Código~\ref{lst:listar} muestra la rutina.
+
+\begin{lstlisting}[style=assemblyStyle, caption={Recorrido del arreglo e invocación de la función de C en \texttt{listar\_libros}.}, label={lst:listar}]
+xor ebx, ebx
+lea esi, biblioteca
+loop_listar:
+    cmp ebx, totalLibros
+    jge fin_listar
+    mov eax, [esi + 104]   ; 4to argumento: cantidad
+    push eax
+    mov eax, [esi + 100]   ; 3er argumento: anio
+    push eax
+    lea eax, [esi + 50]    ; 2do argumento: puntero a autor
+    push eax
+    push esi               ; 1er argumento: puntero a titulo
+    call imprimir_libro_c
+    add esp, 16            ; cdecl: el llamante libera 4*4 = 16 bytes
+    add esi, 112           ; siguiente libro
+    inc ebx
+    jmp loop_listar
+fin_listar:
+\end{lstlisting}
+
+\begin{instruccionbox}
+\textbf{Instrucción}
+\begin{lstlisting}
+    push eax        ; cantidad
+    push eax        ; anio
+    push eax        ; autor
+    push esi        ; titulo
+    call imprimir_libro_c
+    add esp, 16
+\end{lstlisting}
+\textbf{Descripción}
+Apila los cuatro argumentos en orden inverso, invoca la función de C y libera la pila según la convención \texttt{cdecl}.
+\end{instruccionbox}
+
+La función de C tiene la firma \texttt{imprimir\_libro\_c(char* t, char* a, int an, int cant)}. Bajo la convención \texttt{cdecl}, los argumentos se apilan de derecha a izquierda: primero la cantidad, luego el año, después el puntero al autor y por último el puntero al título, de modo que este quede en la cima de la pila como primer parámetro. Tras el \texttt{CALL}, y dado que \texttt{cdecl} responsabiliza al \textbf{llamante} de limpiar la pila, se ejecuta \texttt{add esp, 16} para descartar los cuatro valores de 4 bytes apilados. Omitir esta corrección desbalancearía la pila y corrompería la ejecución en la siguiente iteración del ciclo.
+
+\begin{figure}[H]
+\centering
+\fbox{\includegraphics[width=0.4\textwidth]{fotos/listar.png}}
+\caption{Listado completo de los libros registrados en la biblioteca.}
+\label{fig:listar}
+\end{figure}
+
+\subsection{Resumen de las operaciones implementadas}
+La Tabla~\ref{tab:resumen_ops} sintetiza la división de responsabilidades entre ambos lenguajes para cada operación del sistema, confirmando que la totalidad de la lógica reside en ensamblador y que C se limita a la entrada y salida.
+
+\begin{table}[H]
+\centering
+\caption{División de responsabilidades por operación.}
+\label{tab:resumen_ops}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{
+    >{\raggedright\arraybackslash}p{2.8cm}
+    >{\raggedright\arraybackslash}p{7.0cm}
+    >{\raggedright\arraybackslash}p{2.8cm}
+}
+\toprule
+\rowcolor{VerdeUABC}
+\color{white}\textbf{Operación} &
+\color{white}\textbf{Lógica en ensamblador} &
+\color{white}\textbf{Rol de C} \\
+\midrule
+\rowcolor{rowLight}
+\texttt{agregar\_libro} & Búsqueda de duplicados, copia de cadenas, escritura de campos, conteo & Captura de datos e impresión \\
+\texttt{prestar\_libro} & Búsqueda, validación de disponibilidad, decremento & Impresión del estado \\
+\rowcolor{rowLight}
+\texttt{devolver\_libro} & Búsqueda, validación contra el total, incremento & Impresión del estado \\
+\texttt{buscar\_libro} & Búsqueda y obtención de punteros/valores & Impresión de la ficha \\
+\rowcolor{rowLight}
+\texttt{listar\_libros} & Recorrido del arreglo y llamada \texttt{cdecl} & Impresión de cada libro \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusiones}
+Hacer esta práctica permitió comprender la cooperación entre un lenguaje de alto nivel y uno de bajo nivel dentro de un mismo programa. Al confinar la totalidad de la lógica al ensamblador y reservar para C únicamente la interfaz, se pudo observar todo aquello que un lenguaje de alto nivel resuelve de manera implícita, el cálculo de los desplazamientos de cada campo, el avance del puntero sumando el tamaño completo de la estructura y la comparación de cadenas carácter por carácter fueron tareas que tuvieron que programarse explícitamente, reforzando el tema de cómo se disponen realmente los datos en la memoria.
+
+El manejo de la estructura \texttt{Libro} de 112 bytes resultó ilustrativo para manejar la memoria. Trabajar con desplazamientos fijos (\texttt{+50}, \texttt{+100}, \texttt{+104}, \texttt{+108}) sobre un puntero base hizo evidente que un acceso como \texttt{libro.cantidad} en C esconde, a nivel de máquina, una suma de dirección y un acceso indirecto a memoria.
+
+El principal reto durante el desarrollo fue mantener la lógica en ensamblador y no filtrarla hacia C, resultaba tentador resolver una comparación o una validación con un simple \texttt{if} en el lenguaje de alto nivel, pero respetar la regla de la práctica obligó a expresar cada decisión mediante \texttt{CMP} y saltos condicionales.
+
+\newpage
+\nocite{*}
+\printbibliography[title={Referencias}]
+\addcontentsline{toc}{section}{Referencias}
+
+\appendix
+\section{Repositorio de código}
+El código completo del proyecto híbrido (C + \textbf{MASM x86}) desarrollado durante esta práctica se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/ApoloEM/OyAdeC/tree/main/practica8}
+\end{center}
+
+\end{document}
